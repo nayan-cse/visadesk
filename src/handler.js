@@ -1,7 +1,7 @@
 import {randomBytes, createHash, timingSafeEqual} from 'node:crypto';
 import worker from './worker.js';
 const compare = (a,b) => timingSafeEqual(createHash('sha256').update(a).digest(),createHash('sha256').update(b).digest());
-const error = (message,status) => new Response(JSON.stringify({error:message}),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
+const error = (message,status,code='SERVER_SETUP') => new Response(JSON.stringify({error:message,code}),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
 export async function handle(request, env=process.env, path=new URL(request.url).pathname) {
  try {
   if (!!env.APP_USERNAME !== !!env.APP_PASSWORD) return error('সার্ভারের লগইন সেটআপ অসম্পূর্ণ।',503);
@@ -14,6 +14,7 @@ export async function handle(request, env=process.env, path=new URL(request.url)
   if(!['GET','POST','HEAD'].includes(request.method))return error('Method not allowed',405);
   const url=new URL(request.url);url.pathname=path;url.search='';
   const headers=new Headers(request.headers);
+  if(path.startsWith('/api/')&&headers.get('origin')&&headers.get('origin')!==url.origin)return error('অনুরোধ গ্রহণযোগ্য নয়।',403,'REQUEST_REJECTED');
   const cookie=(headers.get('cookie')||'').match(/(?:^|;\s*)visadesk_session=([a-f0-9]{64})(?:;|$)/)?.[1];
   const session=cookie||randomBytes(32).toString('hex');
   // Never trust client-supplied identity headers.
@@ -24,7 +25,11 @@ export async function handle(request, env=process.env, path=new URL(request.url)
    if(Buffer.byteLength(body)>40000)return error('Request too large',413);
   }
   const forwarded=new Request(url,{method:request.method==='HEAD'?'GET':request.method,headers,body});
-  const response=await worker.fetch(forwarded,env);
+  // Establish the HttpOnly cookie before parallel source preparations. Without
+  // this guard two first POSTs can encrypt tokens for different browser owners.
+  const response=path.startsWith('/api/')&&request.method==='POST'&&!cookie
+   ?error('ব্রাউজার সেশন প্রস্তুত হয়নি। কুকি চালু রেখে আবার চেষ্টা করুন।',409,'SESSION_REQUIRED')
+   :await worker.fetch(forwarded,env);
   const out=new Headers(response.headers);out.set('X-Frame-Options','DENY');
   if(!cookie)out.append('Set-Cookie',`visadesk_session=${session}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400${url.protocol==='https:'?'; Secure':''}`);
   return new Response(request.method==='HEAD'?null:response.body,{status:response.status,headers:out});
