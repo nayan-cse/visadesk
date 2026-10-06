@@ -1,0 +1,10 @@
+import {existsSync} from 'node:fs';
+import {loadLocalEnv,envPath} from './env.mjs';
+const {env,exists}=loadLocalEnv();
+console.log('Settings file: '+envPath);
+console.log('.env.local: '+(exists?'FOUND':'MISSING — run npm run configure-ocr'));
+if(existsSync(envPath+'.txt'))console.log('WARNING: .env.local.txt found. Windows may have saved the wrong extension.');
+console.log('OCR provider: '+(env.OCR_PROVIDER||'auto'));
+console.log('OCR_SPACE_API_KEY: '+(env.OCR_SPACE_API_KEY?.trim()?'SET (value hidden)':'MISSING — run npm run configure-ocr'));
+console.log('Session encryption key: '+(/^[A-Za-z0-9_-]{43}$/.test(env.SESSION_ENCRYPTION_KEY||'')?'SET':'MISSING or invalid — run npm run setup'));
+console.log('Restart the server after changes. On Vercel, set dashboard Environment Variables and Redeploy.');
