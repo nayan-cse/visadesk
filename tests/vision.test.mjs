@@ -16,13 +16,13 @@ globalThis.fetch=async(url,opts)=>{
  return new Response(form);
 };
 const call=(path,body,cookie='',settings=env)=>handle(new Request('https://demo.test'+path,{method:'POST',headers:{cookie,'Content-Type':'application/json'},body:JSON.stringify(body)}),settings);
-let r=await handle(new Request('https://demo.test/api/config'),env);const cookie=r.headers.get('set-cookie').split(';')[0];r=await call('/api/prepare',{source:'ivac'},cookie);const data=await r.json();
+let r=await call('/api/prepare',{source:'ivac'});const cookie=r.headers.get('set-cookie').split(';')[0],data=await r.json();
 const body={source:'ivac',token:data.token,image:data.captcha};
 r=await call('/api/read-captcha',body,cookie);assert.equal(r.status,200);let result=await r.json();assert.equal(result.text,'abcdef');assert(result.ready);
 answer={text:'abcdef',uncertain:true};r=await call('/api/read-captcha',body,cookie);assert.equal((await r.json()).ready,false);
 const before=aiCalls;
 r=await call('/api/read-captcha',{...body,image:'data:image/png;base64,YWJj'},cookie);assert.equal(r.status,400);assert.equal(aiCalls,before);
-r=await call('/api/read-captcha',body);assert.equal(r.status,409);assert.equal((await r.json()).code,'SESSION_REQUIRED');assert.equal(aiCalls,before);
+r=await call('/api/read-captcha',body);assert.equal(r.status,422);assert.equal(aiCalls,before);
 r=await call('/api/read-captcha',body,cookie,{SESSION_ENCRYPTION_KEY:env.SESSION_ENCRYPTION_KEY});assert.equal(r.status,503);assert.equal((await r.json()).code,'AI_NOT_CONFIGURED');
 answer={text:'aB9dE2',uncertain:false};result=await readWithAI(data.captcha,'visa',env);assert.equal(result.text,'aB9dE2');assert(result.ready);
 answer={text:'abc',uncertain:false};result=await readWithAI(data.captcha,'visa',env);assert.equal(result.text,'');assert.equal(result.ready,false);

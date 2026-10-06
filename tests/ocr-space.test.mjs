@@ -18,7 +18,7 @@ let answer=await readWithOCRSpace(image,'visa',env);assert.equal(answer.text,'ab
 text='a?b123';answer=await readWithOCRSpace(image,'visa',env);assert(!answer.ready);assert.equal(answer.text,'');
 text='abcdef\n';expectedEngine='3';answer=await readWithOCRSpace(image,'ivac',{...env,OCR_SPACE_ENGINE:'3'});assert(answer.ready);assert.equal(answer.ocrEngine,3);expectedEngine='2';
 const call=(path,body,cookie='')=>handle(new Request('https://demo.test'+path,{method:'POST',headers:{cookie,'Content-Type':'application/json'},body:JSON.stringify(body)}),env);
-let r=await handle(new Request('https://demo.test/api/config'),env);const cookie=r.headers.get('set-cookie').split(';')[0];r=await call('/api/prepare',{source:'ivac'},cookie);const data=await r.json();
+let r=await call('/api/prepare',{source:'ivac'});const cookie=r.headers.get('set-cookie').split(';')[0],data=await r.json();
 r=await call('/api/read-captcha',{source:'ivac',token:data.token,image:data.captcha},cookie);assert.equal(r.status,200);assert.equal((await r.json()).engine,'ocr-space');
 const before=calls;r=await call('/api/read-captcha',{source:'ivac',token:data.token,image:'data:image/png;base64,YWJj'},cookie);assert.equal(r.status,400);assert.equal(calls,before);
 failure=true;await assert.rejects(()=>readWithOCRSpace(image,'ivac',env),e=>!e.message.includes('secret account detail'));
