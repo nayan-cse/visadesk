@@ -21,7 +21,7 @@ try{
   import worker from './bundle/worker.js';
   import {handle} from './bundle/handler.js';
   const config=await worker.fetch(new Request('https://test.invalid/api/config'),{});
-  assert.equal(config.status,200);assert.equal((await config.json()).version,'1.1.2');
+  assert.equal(config.status,200);assert.equal((await config.json()).version,'1.1.3');
   const page=await handle(new Request('https://test.invalid/'),{});
   assert.equal(page.status,200);assert((await page.text()).includes('delivery-step-cards'));
   assert(page.headers.get('set-cookie').includes('HttpOnly'));

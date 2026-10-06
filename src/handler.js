@@ -4,6 +4,12 @@ const compare = (a,b) => timingSafeEqual(createHash('sha256').update(a).digest()
 const error = (message,status,code='SERVER_SETUP') => new Response(JSON.stringify({error:message,code}),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
 export async function handle(request, env=process.env, path=new URL(request.url).pathname) {
  try {
+  // All browser steps use one Vercel function. Legacy URLs remain compatible.
+  if(path==='/api/track'){
+   const action=new URL(request.url).searchParams.get('action');
+   if(!['prepare','read-captcha','check-status','config'].includes(action))return error('অনুরোধের তথ্য গ্রহণযোগ্য নয়।',400,'INVALID_INPUT');
+   path='/api/'+action;
+  }
   if (!!env.APP_USERNAME !== !!env.APP_PASSWORD) return error('সার্ভারের লগইন সেটআপ অসম্পূর্ণ।',503);
   if(env.APP_USERNAME) {
    const auth=request.headers.get('authorization')||'';

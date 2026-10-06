@@ -1,18 +1,38 @@
-# Vercel আপডেট — v1.1.2
+# Vercel আপডেট — v1.1.3
 
-## এইবারের নির্দিষ্ট সমস্যা
+## সঠিক CAPTCHA দিয়েও Visa ফলাফল না আসা
 
-`visabd.vercel.app`-এ পরীক্ষায় চলমান version ছিল 1.1.1, OCR provider ছিল ocr-space এবং configured ছিল true। দুই উৎসের prepare request সফল হয়েছে; দুই উৎসের read-captcha request-এ 503 / OCR_UNAVAILABLE এসেছে। ওই সংস্করণ provider-এর ব্যর্থতার বিস্তারিত code দেয়নি, তাই শুধু এই response থেকে key invalid, quota বা network failure-এর মধ্যে কোনটি হয়েছে নিশ্চিত করা যায় না। কোনো BGD/passport দিয়ে status query এই পরীক্ষায় চালানো হয়নি।
+সঠিক লেখা দেওয়ার পরেও মূল সাইট তার CAPTCHA সেশন চিনতে না পারলে `Invalid Captcha` ফেরত দিতে পারে। তাই এই response একা ইউজার ভুল লিখেছেন এমন প্রমাণ নয়। IVAC সফল হওয়া Visa-র আলাদা source session ঠিক আছে এমন প্রমাণও নয়।
 
-Home page-এর CSP-তে connect-src-এ data: ছিল না। ইউজারের console-এ browser OCR-এর embedded WebAssembly data URL fetch সেই CSP-তে আটকে যাওয়ার প্রমাণ আছে। v1.1.2-তে এই অনুমতি যুক্ত হয়েছে। পাশাপাশি server OCR খালি লেখা দিলেও browser fallback হয় এবং CAPTCHA ছবি padded Base64-এ পাঠানো হয়।
+কোডে একটি নির্দিষ্ট cookie দুর্বলতা পাওয়া গেছে: `getSetCookie()` থাকলেও এক header-এ একাধিক cookie পাওয়া গেলে আগে প্রথমটিই রাখা হতো। এখন প্রতিটি header-এর প্রতিটি cookie আলাদা করে সংরক্ষণ হয়; `Expires` তারিখের কমা অক্ষুণ্ণ থাকে। `getSetCookie()` খালি array দিলেও raw header থেকে cookie পড়া হয়।
 
-ছবির ভিসা কার্ডে ভুল CAPTCHA-এর বার্তা দেখা যাচ্ছে। check-status-এর 422 response একা কারণ বলে না: CAPTCHA_INVALID হলে নতুন ছবি নিয়ে বড়/ছোট অক্ষর মিলিয়ে নিশ্চিত করুন; NO_RECORD হলে নম্বর মিলিয়ে দেখুন। ভুল CAPTCHA-কে সফল ফলাফল হিসেবে দেখানো হবে না।
+নতুন regression test-এ Visa-র চারটি cookie একত্রিত header দিয়ে ফেরত দেওয়া হয়েছে। একই test আগের v1.1.2-তে ফলাফলের POST-এ 422 দেয়; সংশোধিত কোডে cookie-সহ POST সফল হয়। এটি কোডের দুর্বলতা প্রমাণ করে। আপনার production request-এ একইভাবে header একত্রিত হচ্ছিল কি না সরাসরি নিশ্চিত করা যায়নি।
 
-## নতুন deployment যাচাই
+## এই সংস্করণে আরও যা বদলেছে
 
-পুরো কোড push করে Production deployment দিন, তারপর Ctrl+Shift+R দিয়ে পেইজ refresh করুন। চাইলে নিজের /api/config-এ version 1.1.2 দেখুন। আগের OCR key ও SESSION_ENCRYPTION_KEY রাখুন। OCR_PROVIDER হবে ocr-space এবং OCR_SPACE_ENGINE হবে 2।
+- Browser-এর CAPTCHA আনা, লেখা পড়া ও ফলাফল চেক একই `/api/track?action=...` Vercel function ব্যবহার করে। নতুন `api/track.js` deploy করা জরুরি। আগের `/api/prepare`, `/api/read-captcha`, `/api/check-status` ও `/api/config` URL-গুলো রাখা হয়েছে।
+- মূল Visa সাইটের নিজের `refreshCaptcha()` পদ্ধতির মতো `/visa/captcha`-তে নতুন `rand` query যুক্ত হয়। ছবি চাওয়ার সময় no-cache headers পাঠানো হয়।
+- CAPTCHA প্রত্যাখ্যানের বার্তা হয়েছে: “মূল সাইট ক্যাপচাটি গ্রহণ করেনি। নতুন ছবি নিয়ে আবার নিশ্চিত করুন।” ক্যাপচা নিজে দেখে নিশ্চিত করার ধাপ আগের মতোই আছে।
+- Source cookies encrypted token-এ থাকে। কোনো memory-only session store, custom log file বা logging service লাগে না। অন্য browser-এর token ব্যবহার প্রতিরোধও রাখা হয়েছে।
+- আধুনিক UI, বড় ফলাফল কার্ড, বাংলা ব্যাখ্যা, IVAC শতাংশ, নিচের চার ধাপ, loading progress, night mode, suggestions ও PNG save অপরিবর্তিত আছে।
 
-503 থাকলে Browser DevTools → Network → read-captcha → Response-এ নিচের code পাওয়া যাবে। কোড ছাড়া key বা token পাঠানোর প্রয়োজন নেই।
+একই function ব্যবহারে একই server instance বা outbound IP নিশ্চিত হয় না। Session-এর সঙ্গে network routing-ও যুক্ত কি না এ তদন্তে প্রমাণিত হয়নি। সঠিক CAPTCHA দিয়েও নতুন deployment ব্যর্থ হলে source session/response আরও পরীক্ষা করতে হবে; এটিকে শুধু OCR-এর সমস্যা ধরে নেওয়া যাবে না।
+
+## Deployment আপডেট
+
+1. ZIP extract করে **পুরো project** আপনার repository-তে দিন। বিশেষ করে নতুন `api/track.js`, `src/worker.js`, `src/handler.js` ও `src/index.html` আপডেট হয়েছে কি না দেখুন। শুধু UI বদলালে backend সংশোধন আসবে না।
+2. আগের `.env.local` এবং Vercel-এর Environment Variables রাখুন। `SESSION_ENCRYPTION_KEY` বা OCR key বদলানোর প্রয়োজন নেই। ZIP-এ আসল API key নেই।
+3. Vercel-এর Root Directory হবে `package.json` যে ফোল্ডারে আছে। Framework Other, Build Command override খালি এবং Output Directory override বন্ধ রাখুন। Build Command-এ `npm run dev` দেবেন না।
+4. Commit/push করে Production deployment দিন। Ready হলে Ctrl+Shift+R দিয়ে refresh করে **নতুন CAPTCHA** নিন। আগে তৈরি token ব্যবহার করবেন না।
+5. নিজের `/api/config`-এ `version: "1.1.3"` দেখে নতুন backend যাচাই করতে পারেন। `configured: true` শুধু OCR setting উপস্থিত বোঝায়; ট্র্যাকার চালাতে এই endpoint খোলার প্রয়োজন নেই।
+
+`/api/track`-এ 404 হলে নতুন API file commit হয়েছে কি না দেখুন। First-party cookies চালু রাখুন। ব্যর্থ Visa request-এর response দেখার পথ: DevTools → Network → `track?action=check-status` → Response। শুধু `code` শেয়ার করুন; token, cookie বা API key পাঠাবেন না।
+
+## আগের OCR ও CSP সংশোধনও আছে
+
+v1.1.2-তে browser OCR-এর WebAssembly data URL-এর জন্য CSP `connect-src`-এ `data:` যোগ হয়েছে। সার্ভারের OCR ব্যর্থ হলে বা খালি লেখা দিলে browser OCR চেষ্টা করে। ছবিতে standard padded Base64 দেওয়া হয়। এসব পরিবর্তন এবং নিরাপদ error codes এই সংস্করণে আছে।
+
+OCR-এর 503 হলে DevTools → Network → `track?action=read-captcha` → Response দেখুন:
 
 | Code | কী বোঝায় |
 |---|---|
@@ -20,33 +40,16 @@ Home page-এর CSP-তে connect-src-এ data: ছিল না। ইউজ�
 | OCR_LIMIT_REACHED | OCR ব্যবহারের সীমা বা rate limit এসেছে। পরে চেষ্টা করুন বা ছবির লেখা নিজে মিলিয়ে লিখুন। |
 | OCR_ACCESS_DENIED | OCR সেবা access গ্রহণ করেনি; শুধু এই code থেকে key ভুল নিশ্চিত হয় না। |
 | OCR_TIMEOUT / OCR_NETWORK | OCR সেবার সঙ্গে যোগাযোগ সময়মতো শেষ হয়নি বা সংযোগ ব্যর্থ হয়েছে। |
-| OCR_SETTINGS_INVALID | OCR engine setting গ্রহণযোগ্য নয়। OCR_SPACE_ENGINE-এ 2 দিন এবং Redeploy করুন। |
-| OCR_IMAGE_REJECTED | OCR সেবা ছবির format/data গ্রহণ করেনি। নতুন ছবি নিন। |
-| OCR_SERVICE_UNAVAILABLE | OCR সেবা গ্রহণযোগ্য সফল response দেয়নি। Browser OCR বা নিজে লেখা মিলিয়ে ব্যবহার করুন। |
+| OCR_SETTINGS_INVALID | Engine setting গ্রহণযোগ্য নয়। OCR_SPACE_ENGINE-এ 2 দিন এবং Redeploy করুন। |
+| OCR_IMAGE_REJECTED | ছবির format/data গ্রহণ করেনি। নতুন ছবি নিন। |
+| OCR_SERVICE_UNAVAILABLE | OCR সেবা গ্রহণযোগ্য সফল response দেয়নি। ছবির লেখা নিজে মিলিয়ে ব্যবহার করুন। |
 
-সব code সাইটের সাধারণ ইউজারের কাছ থেকে আড়াল করা হয়। কোনো custom server logging যুক্ত হয়নি।
-
-
-আগের সরাসরি CAPTCHA প্রস্তুত → লেখা যাচাই → ফলাফল দেখার ফ্লো ফিরিয়ে দেওয়া হয়েছে। নতুন custom server logging ও request ID সরানো হয়েছে। ফ্রন্টএন্ডের বাধ্যতামূলক `/api/config` চেক এবং প্রথম POST-এ `SESSION_REQUIRED` বাধাও বাদ দেওয়া হয়েছে। পেইজ খোলার সময় আগের মতো HttpOnly cookie তৈরি হয়; সরাসরি প্রথম CAPTCHA প্রস্তুতের অনুরোধও cookie পায়। Token এখনও সেই browser session-এর সঙ্গে বাঁধা থাকে।
-
-Vercel-এ server modules অন্য জায়গায় bundle হলেও `src/index.html` project root থেকে লোড হবে। HTML শুধু home page চাইলে পড়া হয়; module import বা API cold start-এ পড়া হয় না। `vercel.json`-এ HTML-এর `includeFiles` ও আগের API routes আছে।
-
-নতুন ডিজাইন, loading progress, বাংলা ব্যাখ্যা, চারটি ধাপের কার্ড, source-confirmed শতাংশ, night mode, suggestions ও PNG save রাখা হয়েছে। সঠিক status parsing, OCR-এ অক্ষরের case, timeout, friendly errors ও একটি উৎসের ফলাফল রেখে অন্যটি retry করার সংশোধনও রয়েছে।
-
-## আগের deployment আপডেট করুন
-
-1. ZIP extract করে **পুরো project-এর কোড** আপনার repository-তে দিন। শুধু `src/index.html` বদলাবেন না। `api`, `src`, `scripts`, `tests`, `vercel.json`, `package.json` ও `package-lock.json` সব আপডেট করুন। পুরোনো `src/errors.js` আর প্রয়োজন নেই।
-2. আগের `.env.local` এবং Vercel-এর Environment Variables রাখুন। ZIP-এ আসল API key নেই। `SESSION_ENCRYPTION_KEY` পরিবর্তনের প্রয়োজন নেই।
-3. Vercel-এ Root Directory হবে `package.json` যে ফোল্ডারে আছে। Framework হবে Other, Build Command override খালি এবং Output Directory override বন্ধ। Build Command-এ `npm run dev` দেবেন না।
-4. Commit/push করে নতুন Production deployment করুন। Ready হলে পেইজ refresh করে নতুন CAPTCHA নিন।
-5. চাইলে নিজে `/api/config` খুলে `version: "1.1.2"` দেখুন। ট্র্যাকার এই endpoint-এর ওপর নির্ভর করে না। `configured: true` শুধু OCR setting উপস্থিত বোঝায়।
-
-পুরোনো খোলা পেইজে নতুন deployment-এর আগে তৈরি CAPTCHA token ব্যবহার করবেন না। ব্রাউজারের first-party cookies চালু থাকতে হবে। স্বয়ংক্রিয়ভাবে বসানো লেখাটি ছবির সঙ্গে মিলিয়ে নিশ্চিত করুন।
+Provider-এর নাম ও technical diagnostics সাধারণ ইউজারকে দেখানো হয় না। Custom server logging নেই।
 
 ## পরীক্ষা ও সীমা
 
-`npm test`-এ সরাসরি প্রথম preparation, parallel source sessions, OCR/image binding, parsing, timeout, retry, চার ধাপের UI, PNG save ও suggestions পরীক্ষা করা হয়। Server modules সরিয়ে রেখে included HTML লোড হওয়া এবং HTML অনুপস্থিত হলেও API cold start কাজ করা আলাদা পরীক্ষায় যাচাই করা হয়েছে। Source/provider responses পরীক্ষায় mock করা হয়। নতুন কোড আপনার Vercel account-এ deploy হয়নি। এই environment থেকে browser-এর localhost access বন্ধ থাকায় পূর্ণ browser OCR recognition পরীক্ষা সম্পন্ন হয়নি; CSP response header ও fallback-এর আচরণ automated tests-এ যাচাই করা হয়েছে।
+`npm test`-এর নয়টি test file পাস করেছে। Cookie regression, unified API flow, browser-token binding, fresh CAPTCHA nonce, parsing, timeouts, retry, OCR fallback, CSP, deployment HTML loading, চার ধাপের UI, PNG save ও suggestions পরীক্ষা হয়েছে। Source/provider responses automated tests-এ mock করা হয়েছে।
 
-আপনার আসল Vercel deployment-এর error না দেখে ব্যর্থতার কারণ logging ছিল বলে নিশ্চিত করা যায় না। এই package আপনার account-এ live deploy করে পরীক্ষা করা হয়নি। এখনও সমস্যা হলে deployment URL এবং Vercel-এর build/runtime error-এর লেখা দিয়ে নির্দিষ্ট কারণ পরীক্ষা করা যাবে। API key পাঠানোর প্রয়োজন নেই।
+তদন্তের সময় আপনার চলমান deployment-এর version ছিল 1.1.2। আলাদা পরীক্ষামূলক নম্বর দিয়ে Visa request-এ CAPTCHA প্রত্যাখ্যাত হওয়ার response পাওয়া গেছে; প্রকৃত আবেদনকারীর নম্বর ব্যবহার করা হয়নি। এই ফলাফল দিয়ে production সমস্যার একমাত্র কারণ নিশ্চিত করা যায়নি। নতুন 1.1.3 আপনার Vercel account-এ live deploy করে পরীক্ষা করা হয়নি।
 
-কোডে source requests-এর shared budget ৪৫ সেকেন্ড, client response timeout ৫৫ সেকেন্ড এবং Vercel function duration ৬০ সেকেন্ড রাখা হয়েছে। CAPTCHA জমা দেওয়ার POST নিজে থেকে replay হয় না।
+Source requests-এর মোট budget ৪৫ সেকেন্ড, client timeout ৫৫ সেকেন্ড ও Vercel function duration ৬০ সেকেন্ড। CAPTCHA জমা দেওয়ার POST নিজে থেকে replay হয় না। একটি উৎসের সফল ফলাফল রেখেই ব্যর্থ উৎসে নতুন ছবি নিয়ে আবার নিশ্চিত করা যায়।

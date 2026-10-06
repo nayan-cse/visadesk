@@ -36,7 +36,7 @@ try{
    if(mode==='printed')return new Response('<p>Please enter correct code</p><div class="status">Granted and Printed</div>');
   }
   if(mode==='redirect'){redirectGetCookie=opts.headers.get('Cookie');assert(!opts.body);return new Response('<h1>Home</h1>');}
-  if(url.endsWith('/captcha'))return new Response(new Uint8Array([137,80,78,71]),{headers:{'Content-Type':'image/png','Set-Cookie':'captchaCookie=image-session; Path=/visa'}});
+  if(new URL(url).pathname.endsWith('/captcha'))return new Response(new Uint8Array([137,80,78,71]),{headers:{'Content-Type':'image/png','Set-Cookie':'captchaCookie=image-session; Path=/visa'}});
   return new Response(form,{headers:{'Set-Cookie':'JSESSIONID=private-source-cookie; Path=/visa'}});
  };
  let r=await call('/api/prepare',{source:'visa'});assert.equal(r.status,200);const session=await r.json();

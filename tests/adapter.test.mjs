@@ -15,7 +15,7 @@ const form='<form method="post"><input name="appref1"><input name="captcha"><img
 globalThis.fetch=async(url,options)=>url.endsWith('captcha.php')?new Response(new Uint8Array([1,2,3]),{headers:{'Content-Type':'image/png'}}):options.method==='POST'?new Response('<div class="status">Process Initiated</div>'):new Response(form,{headers:{'Set-Cookie':'remote=session; Path=/'}});
 const call=(path,body,cookie='')=>handle(new Request('https://example.test'+path,{method:'POST',headers:{cookie,'Content-Type':'application/json','x-visadesk-session':'spoofed'},body:JSON.stringify(body)}),env);
 r=await call('/api/prepare',{source:'ivac'});assert.equal(r.status,200);const cookie=r.headers.get('set-cookie').split(';')[0];const initial=await r.json();assert(initial.token);assert.equal(initial.captcha,'data:image/png;base64,AQID');
-r=await handle(new Request('https://example.test/api/config',{headers:{cookie}}),env);assert.equal(r.status,200);assert(!r.headers.has('set-cookie'));assert.equal((await r.json()).version,'1.1.2');
+r=await handle(new Request('https://example.test/api/config',{headers:{cookie}}),env);assert.equal(r.status,200);assert(!r.headers.has('set-cookie'));assert.equal((await r.json()).version,'1.1.3');
 const initialBody={source:'ivac',applicationId:'BGDABCDEFGHI1',passportNo:'A12345678',captcha:'test',token:initial.token};
 r=await call('/api/check-status',initialBody,cookie);assert.equal(r.status,200);
 const prepared=await Promise.all([call('/api/prepare',{source:'ivac'},cookie),call('/api/prepare',{source:'ivac'},cookie)]);assert(prepared.every(r=>r.status===200));assert(prepared.every(r=>!r.headers.has('set-cookie')));const data=await prepared[0].json();const second=await prepared[1].json();
