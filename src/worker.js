@@ -1,8 +1,8 @@
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {imageHash,readWithAI} from './vision.js';
-import {readWithOCRSpace} from './ocr-space.js';
-const APP_VERSION='1.1.1';
+import {readWithOCRSpace,OCRSpaceError} from './ocr-space.js';
+const APP_VERSION='1.1.2';
 class TrackerError extends Error {
  constructor(message,code,{status=422,retryable=false,needsNewCaptcha=false,upstreamStatus}={}) {
   super(message);this.name='TrackerError';
@@ -21,6 +21,7 @@ const decode = s=>String(s||'').replace(/&#(x[0-9a-f]+|\d+);/gi,(_,v)=>{const n=
 function attrs(tag){const o={};for(const m of tag.matchAll(/([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g))o[m[1].toLowerCase()]=decode(m[2]??m[3]??m[4]);return o;}
 function plain(html){return decode(html.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ')).trim();}
 function b64(bytes){let s='';for(const b of bytes)s+=String.fromCharCode(b);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function imageBase64(bytes){let s='';for(const b of bytes)s+=String.fromCharCode(b);return btoa(s);}
 function un64(s){return Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));}
 async function key(env){if(!env.SESSION_ENCRYPTION_KEY)throw new Error('সার্ভারের সেশন সেটআপ অসম্পূর্ণ।');return crypto.subtle.importKey('raw',un64(env.SESSION_ENCRYPTION_KEY),'AES-GCM',false,['encrypt','decrypt']);}
 async function seal(data,env){const iv=crypto.getRandomValues(new Uint8Array(12));const c=await crypto.subtle.encrypt({name:'AES-GCM',iv},await key(env),enc.encode(JSON.stringify(data)));return b64(iv)+'.'+b64(new Uint8Array(c));}
@@ -104,7 +105,7 @@ async function api(request,env,path){
  const f=parseForm(html,fetched.url,b.source);const img=await remote(f.image,b.source,jar,{headers:{Referer:f.referer}},budget);const mime=img.response.headers.get('content-type')?.split(';')[0].trim().toLowerCase();
  if(!['image/png','image/jpeg','image/gif','image/webp'].includes(mime))throw failure('মূল সাইট থেকে ছবিটি পাওয়া যায়নি। আবার নতুন ছবি নিন।','SOURCE_IMAGE_UNAVAILABLE',{status:502,retryable:true,needsNewCaptcha:true});
  const bytes=new Uint8Array(await img.response.arrayBuffer());if(!bytes.length||bytes.length>1000000)throw failure('ছবিটি গ্রহণযোগ্য নয়। আবার নতুন ছবি নিন।','SOURCE_IMAGE_UNAVAILABLE',{status:502,retryable:true,needsNewCaptcha:true});
- const captchaHash=await imageHash(bytes);const exp=Date.now()+5*60*1000;const token=await seal({source:b.source,form:f,jar,exp,captchaHash,owner:request.headers.get('x-visadesk-session')||''},env);return json({token,expiresAt:exp,captcha:'data:'+mime+';base64,'+b64(bytes).replace(/-/g,'+').replace(/_/g,'/')});
+ const captchaHash=await imageHash(bytes);const exp=Date.now()+5*60*1000;const token=await seal({source:b.source,form:f,jar,exp,captchaHash,owner:request.headers.get('x-visadesk-session')||''},env);return json({token,expiresAt:exp,captcha:'data:'+mime+';base64,'+imageBase64(bytes)});
  }
  if(path==='/api/read-captcha'){
  const session=await open(b.token,env,request);if(session.source!==b.source)throw failure('ছবির উৎস মেলেনি। নতুন ছবি নিন।','SESSION_EXPIRED',{status:409,retryable:true,needsNewCaptcha:true});
@@ -124,6 +125,7 @@ async function api(request,env,path){
  const html=await fetched.response.text();return json({result:interpret(html,b.source)});
  }return json({error:'Not found'},404);
  }catch(e){
+  if(e instanceof OCRSpaceError)return json({error:'ছবির লেখাটি নিজে লিখে মিলিয়ে নিন।',code:e.code,retryable:e.retryable,verified:false},503);
   const problem=e instanceof TrackerError?e:/(?:TimeoutError|AbortError)/.test(e.name)?failure('মূল সাইট সময়মতো সাড়া দেয়নি। কিছুক্ষণ পরে আবার চেষ্টা করুন।','SOURCE_TIMEOUT',{status:504,retryable:true}):failure(path==='/api/read-captcha'?'ছবির লেখাটি নিজে লিখে মিলিয়ে নিন।':'এখন ফলাফল আনা যায়নি। কিছুক্ষণ পরে আবার চেষ্টা করুন।',path==='/api/read-captcha'?'OCR_UNAVAILABLE':'INTERNAL_ERROR',{status:503,retryable:true});
   return json({error:problem.message,code:problem.code,retryable:problem.retryable,needsNewCaptcha:problem.needsNewCaptcha,verified:false},problem.status);
  }
@@ -142,4 +144,4 @@ function readPage(){
  return page;
 }
 
-export default {async fetch(request,env){const path=new URL(request.url).pathname;if(path.startsWith("/api/"))return api(request,env,path);if(path!=="/")return new Response("Not found",{status:404});return new Response(readPage(),{headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer","Content-Security-Policy":"default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://cdn.jsdelivr.net https://tessdata.projectnaptha.com; base-uri 'none'; form-action 'self'"}});}};
+export default {async fetch(request,env){const path=new URL(request.url).pathname;if(path.startsWith("/api/"))return api(request,env,path);if(path!=="/")return new Response("Not found",{status:404});return new Response(readPage(),{headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer","Content-Security-Policy":"default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' data: https://cdn.jsdelivr.net https://tessdata.projectnaptha.com; base-uri 'none'; form-action 'self'"}});}};

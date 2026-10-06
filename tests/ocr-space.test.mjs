@@ -18,9 +18,30 @@ let answer=await readWithOCRSpace(image,'visa',env);assert.equal(answer.text,'ab
 text='a?b123';answer=await readWithOCRSpace(image,'visa',env);assert(!answer.ready);assert.equal(answer.text,'');
 text='abcdef\n';expectedEngine='3';answer=await readWithOCRSpace(image,'ivac',{...env,OCR_SPACE_ENGINE:'3'});assert(answer.ready);assert.equal(answer.ocrEngine,3);expectedEngine='2';
 const call=(path,body,cookie='')=>handle(new Request('https://demo.test'+path,{method:'POST',headers:{cookie,'Content-Type':'application/json'},body:JSON.stringify(body)}),env);
-let r=await call('/api/prepare',{source:'ivac'});assert.equal(r.status,200);const cookie=r.headers.get('set-cookie').split(';')[0];const data=await r.json();
+let r=await call('/api/prepare',{source:'ivac'});assert.equal(r.status,200);const cookie=r.headers.get('set-cookie').split(';')[0];const data=await r.json();assert.equal(data.captcha,'data:image/png;base64,iVBORw==');
 r=await call('/api/read-captcha',{source:'ivac',token:data.token,image:data.captcha},cookie);assert.equal(r.status,200);assert.equal((await r.json()).engine,'ocr-space');
 const before=calls;r=await call('/api/read-captcha',{source:'ivac',token:data.token,image:'data:image/png;base64,YWJj'},cookie);assert.equal(r.status,400);assert.equal(calls,before);
-failure=true;await assert.rejects(()=>readWithOCRSpace(image,'ivac',env),e=>!e.message.includes('secret account detail'));
+failure=true;await assert.rejects(()=>readWithOCRSpace(image,'ivac',env),e=>e.code==='OCR_SERVICE_UNAVAILABLE'&&!e.message.includes('secret account detail'));
+// Provider failures are classified without echoing their account/error bodies.
+for(const [status,payload,code] of [
+ [401,{ErrorMessage:'private key invalid'},'OCR_KEY_REJECTED'],
+ [403,{ErrorMessage:'private access denial'},'OCR_ACCESS_DENIED'],
+ [429,{ErrorMessage:'private account quota'},'OCR_LIMIT_REACHED'],
+ [200,{IsErroredOnProcessing:true,OCRExitCode:4,ErrorMessage:['API key invalid: private-key']},'OCR_KEY_REJECTED'],
+ [200,{IsErroredOnProcessing:true,OCRExitCode:4,ErrorMessage:['The daily rate limit has been exceeded. private detail']},'OCR_LIMIT_REACHED'],
+ [200,{IsErroredOnProcessing:true,OCRExitCode:4,ErrorMessage:['Invalid base64 image: private detail']},'OCR_IMAGE_REJECTED'],
+ [200,{IsErroredOnProcessing:true,OCRExitCode:4,ParsedResults:[{FileParseExitCode:-20}]},'OCR_TIMEOUT'],
+ [200,{IsErroredOnProcessing:true,OCRExitCode:4,ParsedResults:{}},'OCR_SERVICE_UNAVAILABLE'],
+ [200,null,'OCR_SERVICE_UNAVAILABLE']
+]){
+ globalThis.fetch=async()=>Response.json(payload,{status});
+ await assert.rejects(()=>readWithOCRSpace(image,'visa',env),e=>e.code===code&&!e.message.includes('private'));
+ r=await call('/api/read-captcha',{source:'ivac',token:data.token,image:data.captcha},cookie);assert.equal(r.status,503);const result=await r.json();assert.equal(result.code,code);assert(!JSON.stringify(result).includes('private'));
+}
+globalThis.fetch=async()=>{throw Object.assign(new Error('private network detail'),{name:'TimeoutError'});};
+await assert.rejects(()=>readWithOCRSpace(image,'visa',env),e=>e.code==='OCR_TIMEOUT');
+await assert.rejects(()=>readWithOCRSpace(image,'visa',{...env,OCR_SPACE_ENGINE:'unknown'}),e=>e.code==='OCR_SETTINGS_INVALID');
+globalThis.fetch=async(url,options)=>{assert.equal(options.body.get('OCREngine'),'2');return Response.json({OCRExitCode:1,ParsedResults:[{FileParseExitCode:1,ParsedText:'AbC123'}]});};
+assert((await readWithOCRSpace(image,'visa',{...env,OCR_SPACE_ENGINE:' 2 '})).ready);
 globalThis.fetch=savedFetch;
 console.log('PASS: OCR.space form/header, engine selection, text validation, provider routing, bound image and safe errors (mocked).');

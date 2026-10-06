@@ -133,6 +133,7 @@ async function readCaptcha(source,data){
  try{
   const answer=await post('/api/read-captcha',{source,token:data.token,image:data.captcha});
   if(sessions[source]!==data)return '';
+  if(!answer.text)return readBrowserCaptcha(source,data);
   $('code-'+source).value=answer.text||'';data.ocrReady=answer.ready===true;
   if(!data.ocrReady){$('captchaPanel').open=true;$('error-'+source).textContent='ছবির লেখাটি মিলিয়ে সংশোধন করুন।';}
   else $('error-'+source).textContent='ক্যাপচা প্রস্তুত।';

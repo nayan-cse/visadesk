@@ -1,6 +1,6 @@
 # Vercel-এ VisaDesk ডেপ্লয়
 
-আগের production আপডেট করছেন? এই ZIP-এর **পুরো project** দিন, existing environment variables রাখুন এবং নতুন Production deployment করুন। চাইলে `/api/config`-এ `version: "1.1.1"` দেখে নতুন backend যাচাই করুন; ট্র্যাকার চালাতে এই চেক লাগে না। বিস্তারিত `PRODUCTION_FIXES.md`-তে আছে।
+আগের production আপডেট করছেন? এই ZIP-এর **পুরো project** দিন, existing environment variables রাখুন এবং নতুন Production deployment করুন। চাইলে `/api/config`-এ `version: "1.1.2"` দেখে নতুন backend যাচাই করুন; ট্র্যাকার চালাতে এই চেক লাগে না। বিস্তারিত `PRODUCTION_FIXES.md`-তে আছে।
 
 ## ১. ফোল্ডার প্রস্তুত
 
@@ -72,6 +72,8 @@ Variable পরে যোগ বা পরিবর্তন করলে Deploy
 - OCR setting কাজ করছে না: Production environment নির্বাচন ও Redeploy হয়েছে কি না দেখুন।
 - Function চালু হয় না: Vercel-এর deployment-এর Build Logs ও runtime error-এর লেখা দেখুন। এই সংস্করণ custom server logs লেখে না। পুরো project আপডেট, সঠিক Root Directory এবং `vercel.json`-এর `includeFiles` আছে কি না যাচাই করুন।
 - সাইট খুলছে কিন্তু source তথ্য আসে না: পেইজের বাংলা বার্তা অনুযায়ী নতুন ছবি নিন বা পরে retry করুন। সঠিক নম্বর ও CAPTCHA দেওয়ার পরেও ব্যর্থ হলে deployment URL ও error-এর লেখা দিয়ে যাচাই করতে হবে।
+
+OCR-এর 503 থাকলে Network → read-captcha → Response-এর `code` দেখুন। `PRODUCTION_FIXES.md`-তে code-এর অর্থ দেওয়া আছে। পুরোনো WebAssembly CSP error নতুন কোডে সংশোধিত হয়েছে; deploy-এর পরে Ctrl+Shift+R দিয়ে refresh করুন।
 
 এই package আপনার Vercel account-এ live deploy করে পরীক্ষা করা হয়নি।
 
