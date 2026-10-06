@@ -42,12 +42,10 @@ try{
  let r=await call('/api/prepare',{source:'visa'});assert.equal(r.status,200);const session=await r.json();
  const payload={source:'visa',applicationId:'BGDTESTING001',passportNo:'Z98765432',captcha:'AbC123',token:session.token};
  for(const [next,status,code,newImage] of [['http',503,'SOURCE_UNAVAILABLE',false],['captcha',422,'CAPTCHA_INVALID',true],['missing',502,'SOURCE_RESULT_MISSING',true],['unknown',502,'RESULT_UNRECOGNIZED',true],['record',422,'NO_RECORD',false],['redirect',409,'SOURCE_SESSION_EXPIRED',true]]){
-  mode=next;const before=postCalls;r=await call('/api/check-status',payload);assert.equal(r.status,status,next);const data=await r.json();assert.equal(data.code,code);assert.equal(data.needsNewCaptcha,newImage);assert.equal(postCalls,before+1);assert(data.requestId);assert(!data.sourceMessage);assert(!data.pageTitle);
+  mode=next;const before=postCalls;r=await call('/api/check-status',payload);assert.equal(r.status,status,next);const data=await r.json();assert.equal(data.code,code);assert.equal(data.needsNewCaptcha,newImage);assert.equal(postCalls,before+1);assert(!Object.hasOwn(data,'requestId'));assert(!data.sourceMessage);assert(!data.pageTitle);
  }
  assert(redirectGetCookie.includes('JSESSIONID=renewed'));assert(redirectGetCookie.includes('captchaCookie=image-session'));
  mode='printed';r=await call('/api/check-status',payload);assert.equal(r.status,200);assert.equal((await r.json()).result.stage,'granted_printed');
- for(const secret of [payload.applicationId,payload.passportNo,payload.captcha,session.token,'private-source-cookie','private-csrf','image-session'])assert(!logs.join('\n').includes(secret),secret);
- assert(logs.some(l=>l.includes('SOURCE_UNAVAILABLE')&&l.includes('"upstreamStatus":503')));
- assert(logs.every(l=>l.includes('"version":"1.1.0"')&&l.includes('requestId')));
+ assert.equal(logs.length,0,'Source failures must not create custom server diagnostics.');
 }finally{globalThis.fetch=originalFetch;console.warn=originalWarn;}
-console.log('PASS: production error classification, safe GET retry, no POST replay, total request budget, redirect cookie continuity, missing/unknown result handling, and privacy-safe diagnostics.');
+console.log('PASS: production error classification, safe GET retry, no POST replay, total request budget, redirect cookies, missing/unknown results, and no custom server diagnostics.');

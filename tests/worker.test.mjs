@@ -15,6 +15,12 @@ assert.equal(interpret('<div>Your visa is Processed and Printed. If not collecte
 assert.equal(interpret('<div class="status">Granted and Printed</div>','visa').stage,'granted_printed');
 assert.equal(interpret('<div class="status">Granted but not printed. Once printed contact the office.</div>','visa').stage,'granted_not_printed');
 assert.throws(()=>interpret('<p>Once your visa is printed, contact the office.</p>','visa'),/ফলাফল/);
+// A form's static instructions must not invalidate an otherwise valid result.
+assert.equal(interpret(actualVisaForm.replace('</form>','<p>Please enter a valid captcha</p></form>')+'<div class="status">Granted and Printed</div>','visa').stage,'granted_printed');
+assert.equal(interpret(actualVisaForm.replace('</form>','<p>Please enter correct code</p></form>')+'<div class="status">Granted but Not&#45;Printed</div>','visa').stage,'granted_not_printed');
+assert.equal(interpret('<script>showError("Invalid captcha")</script><div class="status">Granted and Printed</div>','visa').stage,'granted_printed');
+assert.equal(interpret('<div style="display:none">Invalid captcha</div><div class="status">Granted and Printed</div>','visa').stage,'granted_printed');
+assert.throws(()=>interpret(actualVisaForm+'<p>Please enter a valid captcha</p>','visa'),e=>e.code==='SOURCE_RESULT_MISSING');
 
 const env={SESSION_ENCRYPTION_KEY:Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64url')};
 const form='<form method="post" action="/visa/StatusEnquiry"><input type="hidden" name="csrf" value="source-token"><input name="application_id"><input name="passport_no"><input name="captcha"><img src="/visa/captcha.png"></form>';
@@ -34,12 +40,12 @@ assert.equal(interpret(workflow.replace('<td>Process Initiated</td><td>Done</td>
 assert.equal(interpret('<div class="status">Visa has been granted</div>','visa').stage,'success');
 assert.throws(()=>interpret('<div class="alert">Invalid captcha</div>','visa'),/ক্যাপচা/);
 assert.throws(()=>interpret('<div>Status: * Plase enter correct code</div>','ivac'),/ক্যাপচা/);
-assert.throws(()=>interpret('<p>No record found</p>','ivac'),/রেকর্ড/);
+assert.throws(()=>interpret('<p>No record found</p>','ivac'),e=>e.code==='NO_RECORD');
 assert.equal(interpret('<div>Your visa application is Under Processing.</div>','visa').stage,'processing');
 let res=await call('/api/prepare',{source:'visa'});assert.equal(res.status,200);const session=await res.json();assert(session.captcha.startsWith('data:image/png;base64,'));assert(!session.token.includes('source-session'));assert(!session.token.includes('source-token'));
 res=await call('/api/check-status',{source:'visa',token:session.token,applicationId:'BGDABCDEFGHI1',passportNo:'A12345678',captcha:'abc12'});assert.equal(res.status,200);assert.equal((await res.json()).result.stage,'processing');assert.equal(new URLSearchParams(submitted.body).get('csrf'),'source-token');assert(submitted.headers.get('Cookie').includes('JSESSIONID=source-session'));
-res=await call('/api/check-status',{source:'ivac',token:session.token,applicationId:'BGDABCDEFGHI1',passportNo:'A12345678',captcha:'abc12'});assert.equal(res.status,422);
-res=await call('/api/check-status',{source:'visa',token:'tampered',applicationId:'BGDABCDEFGHI1',passportNo:'A12345678',captcha:'abc12'});assert.equal(res.status,422);
+res=await call('/api/check-status',{source:'ivac',token:session.token,applicationId:'BGDABCDEFGHI1',passportNo:'A12345678',captcha:'abc12'});assert.equal(res.status,409);assert.equal((await res.json()).code,'SESSION_EXPIRED');
+res=await call('/api/check-status',{source:'visa',token:'tampered',applicationId:'BGDABCDEFGHI1',passportNo:'A12345678',captcha:'abc12'});assert.equal(res.status,409);assert.equal((await res.json()).code,'SESSION_EXPIRED');
 res=await call('/api/prepare',{source:'visa'},'https://attacker.test');assert.equal(res.status,403);
 res=await call('/api/prepare',{source:'other'});assert.equal(res.status,400);
 const pageResponse=await worker.fetch(new Request('https://tracker.test/'),env);assert(pageResponse.headers.get('Content-Security-Policy').includes("'wasm-unsafe-eval'"));const page=await pageResponse.text();const script=page.match(/<script>([\s\S]*?)<\/script>/)[1];new Function(script);assert(page.includes('VisaDesk'));assert(!page.includes('Sites Worker ESM starter'));
