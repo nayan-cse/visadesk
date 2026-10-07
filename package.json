@@ -1,6 +1,6 @@
 {
   "name": "visadesk-vercel",
-  "version": "1.1.7",
+  "version": "1.1.9",
   "private": true,
   "type": "module",
   "engines": {
@@ -10,7 +10,7 @@
     "dev": "node scripts/dev.mjs",
     "start": "node scripts/dev.mjs",
     "setup": "node scripts/setup.mjs",
-    "test": "node tests/worker.test.mjs && node tests/production.test.mjs && node tests/adapter.test.mjs && node tests/ui.test.mjs && node tests/vision.test.mjs && node tests/ocr-space.test.mjs && node tests/env.test.mjs && node tests/deployment.test.mjs && node tests/session.test.mjs && node tests/cookie-session.test.mjs && node tests/runtime.test.mjs && node tests/gemini.test.mjs && node tests/gemini-setup.test.mjs",
+    "test": "node tests/worker.test.mjs && node tests/production.test.mjs && node tests/adapter.test.mjs && node tests/ui.test.mjs && node tests/vision.test.mjs && node tests/ocr-space.test.mjs && node tests/env.test.mjs && node tests/deployment.test.mjs && node tests/session.test.mjs && node tests/cookie-session.test.mjs && node tests/runtime.test.mjs && node tests/visa-diagnostics.test.mjs && node tests/bootstrap.test.mjs && node tests/gemini.test.mjs && node tests/gemini-setup.test.mjs",
     "configure-ocr": "node scripts/configure-ocr.mjs",
     "doctor": "node scripts/doctor.mjs",
     "configure-gemini": "node scripts/configure-gemini.mjs"

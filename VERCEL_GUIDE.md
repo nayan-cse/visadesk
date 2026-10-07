@@ -1,6 +1,6 @@
 # Vercel-এ VisaDesk ডেপ্লয়
 
-আগের production আপডেট করছেন? এই ZIP-এর **পুরো project**, বিশেষ করে নতুন `src/cookies.js`, আপডেট হওয়া `src/worker.js` এবং আগের `api/track.js`, `src/gemini.js`, `src/ocr-config.js`, দিন। Existing environment variables রাখুন এবং নতুন Production deployment করুন। CAPTCHA error response-এ `version: "1.1.7"` দেখে নতুন backend যাচাই করতে পারেন। ঐচ্ছিক `/api/config`-এও version দেখা যায়; ট্র্যাকার চালাতে এই চেক লাগে না। Gemini ব্যবহারের জন্য `GEMINI_SETUP.md`, session সংশোধনের জন্য `PRODUCTION_FIXES.md` পড়ুন।
+আগের production আপডেট করছেন? এই ZIP-এর **পুরো project**, বিশেষ করে নতুন `src/cookies.js`, আপডেট হওয়া `src/worker.js` এবং আগের `api/track.js`, `src/gemini.js`, `src/ocr-config.js`, দিন। Existing environment variables রাখুন এবং নতুন Production deployment করুন। CAPTCHA error response-এ `version: "1.1.9"` দেখে নতুন backend যাচাই করতে পারেন। ঐচ্ছিক `/api/config`-এও version দেখা যায়; ট্র্যাকার চালাতে এই চেক লাগে না। Gemini ব্যবহারের জন্য `GEMINI_SETUP.md`, session সংশোধনের জন্য `PRODUCTION_FIXES.md` পড়ুন।
 
 ## ১. ফোল্ডার প্রস্তুত
 

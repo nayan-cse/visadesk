@@ -1,6 +1,6 @@
 # OCR.space — আপনার জন্য সেটআপ
 
-**Gemini আগে এবং OCR.space ব্যাকআপ চাইলে** `GEMINI_SETUP.md` পড়ুন। বর্তমান v1.1.7-তে দুইটি key রাখা যায়। `npm run configure-gemini` ও `npm run configure-ocr` দুটোই চালালে দুইটি key গোপনে সেট হবে এবং Gemini আগে চেষ্টা করবে। পুরোনো session ও login settings রাখা হয়। নিচের OCR.space-only setup-ও ব্যবহার করা যায়।
+**Gemini আগে এবং OCR.space ব্যাকআপ চাইলে** `GEMINI_SETUP.md` পড়ুন। বর্তমান v1.1.9-তে দুইটি key রাখা যায়। `npm run configure-gemini` ও `npm run configure-ocr` দুটোই চালালে দুইটি key গোপনে সেট হবে এবং Gemini আগে চেষ্টা করবে। পুরোনো session ও login settings রাখা হয়। নিচের OCR.space-only setup-ও ব্যবহার করা যায়।
 
 ## ১. ফোল্ডার খুলুন
 

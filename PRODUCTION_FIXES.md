@@ -1,6 +1,114 @@
-# Vercel আপডেট — v1.1.7
+# Vercel আপডেট — v1.1.9
 
-বর্তমান package v1.1.7। Gemini আগে ও OCR.space ব্যাকআপ setup আগের মতো আছে; `GEMINI_SETUP.md` পড়ুন।
+বর্তমান package v1.1.9। Gemini আগে ও OCR.space ব্যাকআপ setup আগের মতো আছে; `GEMINI_SETUP.md` পড়ুন।
+
+## নতুন local failure-এ নির্দিষ্ট পার্থক্য
+
+ইউজারের v1.1.8 সফল Visa diagnostics-এ চারটি পরিচিত cookie সব phase-এ unchanged ছিল। আরেকটি local failure-এ same-instance, 8-second CAPTCHA, HTTP 200/no redirect, অপরিবর্তিত JSESSIONID/BNES_JSESSIONID দেখা গেছে, কিন্তু IVFRT_Cookie ও BNES_IVFRT_Cookie সব phase-এ absent ছিল। Source CAPTCHA error-সহ enquiry form ফেরত দিয়েছে।
+
+এই তথ্য instance বদল বা Vercel IP-কে একমাত্র কারণ ধরে নেওয়ার সুযোগ দেয় না। Cookie absence একটি নির্দিষ্ট পার্থক্য; ওই cookies source-এ বাধ্যতামূলক বা সেটিই মূল কারণ ছিল এমন প্রমাণ এখনও নেই। Root cookie-এর কাজ source owner-এর configuration ছাড়া নিশ্চিত বলা যায় না।
+
+## v1.1.9-এ recovery পদ্ধতি
+
+Visa landing ও enquiry form পাওয়ার পরে POST-এ প্রযোজ্য IVFRT_Cookie ও BNES_IVFRT_Cookie দুটোই absent থাকলে, ক্যাপচা তৈরির আগে একবার cookie jar বাদ দিয়ে নতুন jar-এ স্বাভাবিক landing → enquiry form navigation করা হয়। নতুন form-এর hidden token, source action/referer ও তার cookies একসঙ্গে রাখা হয়। তারপর ওই final session দিয়ে একবার CAPTCHA image আনা হয়। প্রথম প্রস্তুতির form/token/cookies দ্বিতীয়টির সঙ্গে মেশানো হয় না।
+
+- প্রথম প্রস্তুতিতে pair present অথবা partial হলে extra navigation হয় না।
+- দুটোই absent হলে সর্বোচ্চ দ্বিতীয় প্রস্তুতি; source network GET retry/redirect-এর আগের policy বজায় থাকে। একই মোট 45-second budget, প্রতি network attempt-এর 12-second timeout এবং 60-second Vercel limit রাখা হয়েছে।
+- দ্বিতীয়বারেও absent থাকলে source-এর প্রকৃত check অনুমোদিত। Absence-কে নিজে CAPTCHA_INVALID/NO_RECORD বলা হয় না; এই cookies source বৈধভাবেও omit করতে পারে।
+- Recovery চলাকালে source 403/429/error দিলে আগের error classification চলে। Denial পাশ কাটানো বা নতুন proxy/IP ব্যবহার করা হয় না।
+- Final image আগের মতো দেখিয়ে user-এর correction/confirmation নেওয়া হয়। CAPTCHA rejection-এর পরে কোনো automatic POST retry নেই। Recovery হয় image দেখানোর আগেই; user-এর অজান্তে দেখা ছবি বদলে submit করা হয় না।
+
+এটি নতুন upstream connection অথবা একই outbound IP নিশ্চিত করে না। Source সেই cookies পাঠাতে বাধ্য নয়। Root-cookie absence case-এর আগে একটি bounded recovery চেষ্টা যোগ হয়েছে; সব CAPTCHA rejection সমাধানের নিশ্চয়তা নয়।
+
+## নতুন `visaBootstrap` field
+
+সফল Visa response-এ `diagnostics.visaBootstrap`; source-result error-এ response-এর root-এ `visaBootstrap` থাকে:
+
+```json
+{
+  "attempts": 2,
+  "initialRootCookiePair": "absent",
+  "finalRootCookiePair": "present"
+}
+```
+
+| Field/value | অর্থ |
+|---|---|
+| `attempts: 1` | প্রথম form-এ অন্তত একটি root cookie ছিল; recovery দরকার হয়নি |
+| `attempts: 2` | প্রথম form-এ দুটোই absent ছিল; একবার fresh jar/form চেষ্টা হয়েছে |
+| `initialRootCookiePair` | প্রথম enquiry form পাওয়ার শেষে POST-এ প্রযোজ্য pair-এর অবস্থা |
+| `finalRootCookiePair` | শেষ enquiry form পাওয়ার শেষে অবস্থা, CAPTCHA image আনার আগের snapshot |
+| `present` | দুই নামের cookie-ই প্রযোজ্য |
+| `partial` | শুধু একটি আছে |
+| `absent` | দুটোই নেই |
+| `unknown` / `attempts: null` | পুরোনো token-এ এই তথ্য নেই; অনুমান করা হয়নি |
+
+`visaCookieChanges` ও `sourceReplySignals` আগের মতো আছে। Image response-এ পরে cookie যোগ হলে সেটি formToImage-এ দেখা যায়; `finalRootCookiePair` image-এর আগের state বলে অপরিবর্তিত থাকে। কোনো cookie value/hash, raw source HTML, ব্যক্তিগত input বা session token এই diagnostics-এ ফেরে না।
+
+## পরীক্ষা এবং deploy
+
+Transient missing-root source fixture-তে v1.1.8 সঠিক CAPTCHA answer-সহ CAPTCHA_INVALID/422 দেয়। Source দ্বিতীয় navigation-এ pair দিলে v1.1.9 final form/cookies দিয়ে সফল হয়। এটি কোডের modeled recovery verification; আপনার মূল সাইট সত্যিই ওই দুই cookies ছাড়া session হারিয়েছে কি না প্রমাণ নয়।
+
+১৫টি test file পাস করেছে। Healthy pair, pair শুধু form response-এ পাওয়া, partial pair, source বৈধভাবে root pair omit করেও সফল হওয়া, এখনও absent থেকে আসল rejection, দ্বিতীয় navigation-এ access denial, privacy, cold start/পুরোনো token ও একটিমাত্র final image/POST পরীক্ষা আছে। Source/provider responses mocked; v1.1.9 live পরীক্ষা হয়নি। Approved UI একই bytes আছে।
+
+1. ZIP-এর পুরো project দিয়ে deploy করুন অথবা নতুন ফোল্ডার থেকে local server চালান। আগের `.env.local`/Vercel variables এবং SESSION_ENCRYPTION_KEY রাখুন। নতুন dependency/service/key লাগে না।
+2. পুরোনো server বন্ধ করে নতুন project-এ `npm run dev` দিন; browser refresh করে নতুন CAPTCHA নিন। Result/error response-এ `version: "1.1.9"` দেখে সঠিক server নিশ্চিত করুন।
+3. Visa source-এর response থেকে শুধু `visaBootstrap`, `visaCookieChanges` ও `sourceReplySignals` দিন। Request/token/Cookie header বা ব্যক্তিগত নম্বর দেবেন না। `attempts: 2` এবং final pair present হলে recovery কুকি পেয়েছে; absent হলে source এখনো দেয়নি। Recovery cookie পেয়েও check ব্যর্থ হলে source session/answer/response নিয়ে আরও তদন্ত প্রয়োজন।
+
+## আগের v1.1.8 diagnostics ও সংশোধন
+
+## লোকাল restart পরীক্ষা থেকে কী জানা গেল
+
+ইউজারের দেয়া v1.1.7 Visa diagnostics-এ local → local, `different-instance`, CAPTCHA বয়স 43 seconds এবং অপরিবর্তিত cookie-সহ সফল response পাওয়া গেছে। নতুন process পুরোনো encrypted token ব্যবহার করতে পেরেছে। তাই instance-local memory হারানোকে এই ব্যর্থতার প্রমাণিত কারণ বলা যায় না। এটি মূল source-এর session server-side সক্রিয় ছিল এমন সাধারণ নিশ্চয়তা নয়; একটি সফল query-র প্রমাণ।
+
+Vercel-এর সফল Visa response-এ same-instance/unchanged cookie দেখা গেছে; ব্যর্থ response-এ different-instance/response cookie change দেখা গেছে। সম্পর্কটি সন্দেহ তৈরি করে, কিন্তু instance marker IP মাপে না এবং response-এ cookie বদল rejection-এর পরেও হতে পারে। মূল সাইটে IP binding বা cookie replay protection enabled আছে কি না এখানে প্রমাণিত হয়নি।
+
+## v1.1.8-এ আরও নির্দিষ্ট diagnostics
+
+চারটি পরিচিত নামের cookie-র মান ও scope server-এর ভিতরে hash করে encrypted token-এ রাখা হয়। API-তে শুধু পরিবর্তনের state ফেরে। কোনো raw value, fingerprint/hash, opaque instance ID, source HTML বা আবেদন/পাসপোর্ট/CAPTCHA answer diagnostic fields-এ ফেরে না। Normal UI-তে এই fields দেখানো হয় না এবং কোনো diagnostic log file/service লাগে না। Cookie পাঠানো, upstream request, parser-এর সিদ্ধান্ত এবং user confirmation পদ্ধতি বদলায়নি।
+
+| Field | কী বোঝায় |
+|---|---|
+| `visaCookieChanges.formToImage` | ফর্ম পাওয়ার পরে বনাম ছবি পাওয়ার পরে POST-এ প্রযোজ্য নির্দিষ্ট cookie পরিবর্তন |
+| `visaCookieChanges.imageToSubmit` | ছবি পাওয়ার পরে বনাম ফলাফল POST পাঠানোর আগে; review-এর সময়ে cookie expiry-ও ধরা পড়ে |
+| `visaCookieChanges.submitToResponse` | POST-এর আগে বনাম তার final response-এর পরে; redirect-এ cookie পরিবর্তনও অন্তর্ভুক্ত |
+| `sourceHttpStatus` | মূল সাইটের final status-check response-এর HTTP status; আমাদের API-এর 422 নয় |
+| `sourceRedirectCount` | ওই status-check request-এর redirect সংখ্যা; prepare/image request-এর redirect নয় |
+| `sourceReplySignals.captchaErrorPresent` | দৃশ্যমান source markup-এ CAPTCHA প্রত্যাখ্যানের pattern পাওয়া গেছে কি না |
+| `sourceReplySignals.visaStatusPhrasePresent` | দৃশ্যমান উত্তরে পরিচিত Visa status phrase আছে কি না; এটি নিজে confirmed result নয় |
+| `sourceReplySignals.enquiryFormPresent` | ফলাফলের উত্তরে আবার CAPTCHA-সহ enquiry form আছে কি না; শুধু Back/Home form এতে গণ্য হয় না |
+
+প্রতি phase-এ `JSESSIONID`, `BNES_JSESSIONID`, `IVFRT_Cookie`, `BNES_IVFRT_Cookie` থাকবে। এগুলো স্থির allowlist; অপরিচিত cookie-র নাম প্রকাশ হয় না। একই নামের একাধিক domain/path cookie যথাযথ scope-সহ তুলনা করা হয়।
+
+| State | অর্থ |
+|---|---|
+| `unchanged` | দুই সময়ে প্রযোজ্য cookie identity ও value একই |
+| `changed` | দুই সময়েই ছিল, identity/value বদলেছে |
+| `added` | আগে ছিল না, পরে পাওয়া গেছে |
+| `removed` | আগে ছিল, পরে প্রযোজ্য নয়; deletion/expiry/path change হতে পারে |
+| `absent` | দুই সময়েই ওই নামের প্রযোজ্য cookie নেই; এটি নিজে error নয় |
+| `unknown` | আগের snapshot নেই, যেমন পুরোনো deployment-এর token; পরিবর্তন অনুমান করা হয়নি |
+
+সফল response-এ নতুন fields `diagnostics`-এর মধ্যে থাকে। `CAPTCHA_INVALID` এবং অন্য parsed-source error-এ আগের মতো response-এর root-এ থাকে। Network failure/input rejection/আগের token invalid হলে completed source-response diagnostics নাও থাকতে পারে।
+
+## ডেপ্লয় করে কোন অংশ শেয়ার করবেন
+
+1. ZIP-এর পুরো project দিয়ে Production deploy করুন। Existing `.env.local`/Vercel settings এবং `SESSION_ENCRYPTION_KEY` রাখুন। নতুন provider/server/paid service এই diagnostic update চালাতে প্রয়োজন নেই।
+2. পেইজ refresh করে নতুন CAPTCHA নিন, নিজে লেখা মিলিয়ে confirm করুন। নতুন response-এ version `1.1.9` দেখুন। কোনো automatic POST retry যোগ হয়নি; প্রতি ছবি user-confirmed একবার জমা হয়।
+3. DevTools → Network → `track?action=check-status` → Response-এর `source: "visa"` দেখুন। একটি সফল ও একটি ব্যর্থ check-এর শুধু diagnostics অংশ দিন, বিশেষ করে `visaCookieChanges`, `sourceHttpStatus`, `sourceRedirectCount`, `sourceReplySignals`।
+4. Full request body, token, Cookie header, API key বা ব্যক্তিগত নম্বর পাঠাবেন না। এই আপডেটে cookie value সংগ্রহ বা public HTML debug endpoint নেই।
+
+## নতুন ফলাফল দিয়ে তদন্তের দিক বেছে নিন
+
+- Form/image/submit-এর আগেই cookie বদললে সেই phase-এর source Set-Cookie, expiry, path/domain এবং request coupling পরীক্ষা করতে হবে। `added` বা `changed` নিজে ব্যর্থতা প্রমাণ করে না।
+- Submit পর্যন্ত একই ছিল কিন্তু response-এ `/visa` session cookies বদলালে source নতুন session দিয়েছে কি না তদন্ত করুন। Root-path cookies বদললে সেটিও পৃথকভাবে দেখা যাবে। এটি cookie reset-ই প্রথম কারণ ছিল এমন প্রমাণ নয়।
+- HTTP 200-এর সাথে CAPTCHA error/form ফেরত এলে transport সফল হলেও source application ফলাফল দেয়নি। আমাদের 422 মানে সেই application rejection-এর API representation।
+- CAPTCHA error এবং status phrase দুটোই থাকলে source notice/markup আরও যাচাই করতে হবে; status phrase দেখে প্রত্যাখ্যান উপেক্ষা করা হয় না।
+- Network/IP সন্দেহ যাচাইয়ের নির্ভরযোগ্য পথ হলো source-owner logs-এ CAPTCHA ও submit-এর দেখা IP/session তুলনা, অথবা একই source flow একটি নিশ্চিত single outbound IP-তে চালিয়ে controlled comparison। Browser-এর Remote address বা আলাদা IP-check API call এই source-specific IP প্রমাণ করে না। Region pin বা instance ID-কে IP হিসেবে ধরবেন না।
+
+এটি diagnostics update, নিশ্চিত production fix নয়। ১৪টি test file পাস করেছে, কিন্তু source/provider responses mocked এবং v1.1.8 এখনও আপনার live deployment-এ পরীক্ষা হয়নি। Approved `src/index.html` byte-for-byte রাখা হয়েছে। নতুন test-এ four-cookie rotation/deletion/addition/expiry, cold-start/legacy token, real-form fixture, source response markers/redirect, private output এবং একটিমাত্র POST যাচাই হয়েছে।
+
+## আগের সংশোধন ও diagnosis
 
 ## লোকালে কাজ করে, Vercel-এ মাঝেমধ্যে 422
 
@@ -19,7 +127,7 @@ Vercel-এর [Functions documentation](https://vercel.com/docs/functions) অ�
 
 | Field | কী মাপা হয়েছে |
 |---|---|
-| version / source | `1.1.7` / সংশ্লিষ্ট tracker |
+| version / source | `1.1.9` / সংশ্লিষ্ট tracker |
 | runtimeContinuity | Prepare ও check একই module instance-এ হলে `same-instance`, অন্য হলে `different-instance`; পুরোনো token হলে `unknown` |
 | prepareRegion / checkRegion | Vercel runtime region; লোকালে `local`; পাওয়া না গেলে `unknown` |
 | formImageCookieState | Form আনার পর এবং image আনার পর POST-এ প্রযোজ্য সব cookie-র মান বদলেছে কি না |
@@ -37,7 +145,7 @@ Vercel-এর [Functions documentation](https://vercel.com/docs/functions) অ�
 
 Test-এ valid status-এর পাশে HTML comment-এ `<ul class="errorMessage">Invalid Captcha</ul>` থাকলে পুরোনো parser CAPTCHA error দিচ্ছিল। এখন comment বাদ দিয়ে status পড়া হয়; commented form/script markup-ও parse করা হয় না। আসল visible error থাকলে সেটি এখনও error হয়। আপনার live failure-এ এই পরিস্থিতি ছিল কি না জানা যায়নি।
 
-১৩টি automated test file সফল হয়েছে। Cold-start simulation-এ অন্য worker instance থেকেও একই encrypted source cookie/token দিয়ে query সফল হয়েছে। Source/provider responses mocked; v1.1.7 আপনার Vercel-এ live পরীক্ষা হয়নি।
+১৪টি automated test file সফল হয়েছে। Cold-start simulation-এ অন্য worker instance থেকেও একই encrypted source cookie/token দিয়ে query সফল হয়েছে। Source/provider responses mocked; v1.1.8 আপনার Vercel-এ live পরীক্ষা হয়নি। ইউজারের v1.1.7 diagnostics-এ লোকাল restart-এর পরে সফল different-instance check এবং Vercel-এ সফল ও ব্যর্থ check দেখা গেছে।
 
 ## আগের v1.1.6 cookie সংশোধনও অন্তর্ভুক্ত
 
@@ -90,7 +198,7 @@ DevTools → Network → `track?action=check-status` → Response দেখু�
 2. আগের `.env.local` এবং Vercel-এর Environment Variables রাখুন। `SESSION_ENCRYPTION_KEY` বা OCR key বদলানোর প্রয়োজন নেই। ZIP-এ আসল API key নেই।
 3. Vercel-এর Root Directory হবে `package.json` যে ফোল্ডারে আছে। Framework Other, Build Command override খালি এবং Output Directory override বন্ধ রাখুন। Build Command-এ `npm run dev` দেবেন না।
 4. Commit/push করে Production deployment দিন। Ready হলে Ctrl+Shift+R দিয়ে refresh করে **নতুন CAPTCHA** নিন। আগে তৈরি token ব্যবহার করবেন না।
-5. নিজের `/api/config`-এ `version: "1.1.7"` দেখে নতুন backend যাচাই করতে পারেন। `configured: true` শুধু OCR setting উপস্থিত বোঝায়; ট্র্যাকার চালাতে এই endpoint খোলার প্রয়োজন নেই। CAPTCHA error response-এর `version` বা সফল response-এর `diagnostics.version` দিয়েও backend version দেখা যায়।
+5. নিজের `/api/config`-এ `version: "1.1.9"` দেখে নতুন backend যাচাই করতে পারেন। `configured: true` শুধু OCR setting উপস্থিত বোঝায়; ট্র্যাকার চালাতে এই endpoint খোলার প্রয়োজন নেই। CAPTCHA error response-এর `version` বা সফল response-এর `diagnostics.version` দিয়েও backend version দেখা যায়।
 
 `/api/track`-এ 404 হলে নতুন API file commit হয়েছে কি না দেখুন। First-party cookies চালু রাখুন। ব্যর্থ request-এর response থেকে শুধু উপরে উল্লেখ করা safe fields শেয়ার করুন।
 

@@ -17,6 +17,29 @@ Key চাইলে OCR.space-এর ইমেইল থেকে শুধু k
 
 ## এই সংস্করণের পরিবর্তন
 
+**v1.1.9 — দুটো root cookie না এলে CAPTCHA প্রস্তুতির আগে একবার recovery**
+
+- ইউজারের একটি v1.1.8 local failure-এ `/visa` session cookies ছিল, কিন্তু `IVFRT_Cookie` ও `BNES_IVFRT_Cookie` সব phase-এ absent ছিল। একই সংস্করণের সফল check-এ চারটি cookie-ই ছিল। এই পার্থক্য একটি সূত্র, source cookie-গুলো বাধ্যতামূলক এমন প্রমাণ নয়।
+- Visa form পাওয়ার পরে দুই root cookie-ই absent হলে CAPTCHA নেওয়ার আগে একবার নতুন jar দিয়ে landing ও enquiry form আনা হয়। Final form/token/cookies দিয়ে একবারই image তৈরি হয় এবং user confirmation-এর পরে একবারই POST হয়। Healthy/partial cookie pair-এ অতিরিক্ত navigation নেই। একই 45-second budget বজায় থাকে।
+- পুনঃপ্রস্তুতিতেও root pair absent হলে মূল সাইটের প্রকৃত check চালানো যায়; কেবল absence দেখে CAPTCHA_INVALID বানানো হয় না। নতুন `visaBootstrap` diagnostics recovery-এর ফল জানায়। দ্বিতীয় প্রস্তুতির HTTP/network failure আগের error policy অনুসরণ করে।
+- Transient missing-cookie source fixture-তে v1.1.8 সঠিক CAPTCHA answer-সহ 422 দেয়; v1.1.9 দ্বিতীয় প্রস্তুতিতে root cookies পেয়ে সফল হয়। এটি modeled failure/recovery, আপনার live source-এর কারণ নিশ্চিত করে না। ১৫টি test file পাস করেছে; নতুন সংস্করণ live পরীক্ষা হয়নি।
+- পুরো project deploy করুন, আগের settings রাখুন, server restart/page refresh করে নতুন CAPTCHA নিন। UI ও provider setup রাখা হয়েছে। `PRODUCTION_FIXES.md`-তে `visaBootstrap` পড়ার নির্দেশনা আছে।
+
+**v1.1.8 — কোন Visa কুকি বদলাচ্ছে তা শনাক্ত করার আপডেট**
+
+- সফল Visa response-এর `diagnostics` এবং ব্যর্থ response-এ `visaCookieChanges`, `sourceHttpStatus`, `sourceRedirectCount`, `sourceReplySignals` আছে। চারটি পরিচিত cookie-র form → image → submit → response পরিবর্তন আলাদা করে দেখা যায়। মান, hash, source HTML বা personal input প্রকাশ হয় না; custom log file নেই।
+- ইউজারের লোকাল restart পরীক্ষায় v1.1.7-এর encrypted session নতুন process-এও সফল হয়েছে। ফলে instance বদল একাই ব্যর্থতার কারণ নয়। Vercel-এর network/IP বিষয়টি এখনও সম্ভাবনা; এই আপডেট তাকে প্রমাণিত কারণ হিসেবে ধরে নেয় না।
+- ১৪টি automated test file পাস করেছে। Source/provider responses mocked; v1.1.8 এখনও আপনার production-এ live পরীক্ষা হয়নি। এটি কারণ নির্ণয়ের আপডেট, নিশ্চিত production fix নয়।
+- পুরো project deploy করুন, আগের environment settings রাখুন এবং নতুন CAPTCHA নিন। `PRODUCTION_FIXES.md`-তে নতুন response পড়ার নির্দেশনা আছে। আগের user interface এবং manual confirmation flow রাখা হয়েছে।
+
+**v1.1.7 — Vercel-এর অনিয়মিত ব্যর্থতা নির্ণয়ের আপডেট**
+
+- সম্পূর্ণ হওয়া status check-এর সফল response-এ `diagnostics`, আর source-result error response-এ safe diagnostic fields আছে। Prepare ও submit একই runtime instance/region-এ হয়েছে কি না, form → image → submit-এর cookie বদল, ছবির বয়স ও CAPTCHA-র দৈর্ঘ্য তুলনা করা যায়। এগুলো UI-তে দেখানো হয় না; কোনো secret, cookie value, instance identifier বা custom server log ফেরত আসে না।
+- HTML comment-এ রাখা error markup-কে আগে কখনও সত্যিকারের `CAPTCHA_INVALID` ধরা হতো। সেই ভুল শনাক্তকরণ সংশোধন হয়েছে; commented form/script markup-ও form হিসেবে নেওয়া হয় না। Test-এ দুর্বলতাটি পুনরুৎপাদন হয়েছে, তবে আপনার production ব্যর্থতার কারণ এটিই কি না প্রমাণিত নয়।
+- Cold-start simulation-এ অন্য module instance থেকেও encrypted session দিয়ে source query সফল হয়েছে। Instance বদলকে একা ব্যর্থতার কারণ ধরা হয় না। একই instance থাকাও একই outbound IP-এর নিশ্চয়তা দেয় না।
+- ১৩টি automated test file সফল হয়েছে; source/provider responses mocked। নতুন সংস্করণ আপনার Vercel production-এ live পরীক্ষা হয়নি। বর্তমান production-এর মূল কারণ এখনও অনিশ্চিত। সফল ও ব্যর্থ Visa response তুলনা করার নির্দেশনা `PRODUCTION_FIXES.md`-তে আছে।
+- পুরো project deploy করুন; আগের environment settings রাখুন এবং নতুন CAPTCHA নিন। UI, Gemini/OCR.space fallback, manual confirmation, শতাংশ ও PNG save আগের মতো আছে।
+
 **v1.1.6 — CAPTCHA সেশনের cookie সংরক্ষণ সংশোধন**
 
 - একই নামের cookie আলাদা domain/path-এ থাকলে দুটোই সংরক্ষণ হয়। উপযুক্ত পথের cookie-ই পাঠানো হয়; একটি cookie মুছলে অন্য পথের cookie হারায় না। মেয়াদ শেষ হলে সেটি আর পাঠানো হয় না।
@@ -164,7 +187,7 @@ Key চাইলে OCR.space-এর ইমেইল থেকে শুধু k
 npm test
 ```
 
-Source/OCR integration tests mocked responses ব্যবহার করে। v1.1.6 আপনার production-এ live পরীক্ষা হয়নি। আগের deployment-এর একটি অনুমোদিত live পরীক্ষায় Visa ফলাফল পাওয়া গেছে, কিন্তু IVAC CAPTCHA প্রত্যাখ্যান করেছে; সেটি নতুন সংশোধনের verification নয়। আসল distorted CAPTCHA-র নির্ভুলতা নিশ্চিত নয়। ভুল হলে manual correction আছে। Server OCR-তে শুধু CAPTCHA ছবি যায়; BGD/passport/name/source cookie যায় না। Source site form বা server access বদলালে status query ব্যর্থ হতে পারে।
+Source/OCR integration tests mocked responses ব্যবহার করে। v1.1.9 আপনার production-এ live পরীক্ষা হয়নি। ইউজারের v1.1.7 production response-এ Visa ও IVAC সফল হয়েছে, আবার Visa ব্যর্থও হয়েছে; লোকাল restart-এও Visa সফল হওয়ার diagnostics পাওয়া গেছে। আগের deployment-এর একটি অনুমোদিত live পরীক্ষায় Visa ফলাফল পাওয়া গেছে, কিন্তু IVAC CAPTCHA প্রত্যাখ্যান করেছে; সেটি নতুন সংশোধনের verification নয়। আসল distorted CAPTCHA-র নির্ভুলতা নিশ্চিত নয়। ভুল হলে manual correction আছে। Server OCR-তে শুধু CAPTCHA ছবি যায়; BGD/passport/name/source cookie যায় না। Source site form বা server access বদলালে status query ব্যর্থ হতে পারে।
 
 IVAC progress source table-এর Done rows থেকে হিসাব হয়। এটি visa approval probability নয়। Granted but Not-Printed ও Granted and Printed আলাদা। Printed এবং একই আবেদনের Ready For Delivery পাওয়া গেলে সংগ্রহের ছোট নির্দেশনা দেখানো হয়।
 

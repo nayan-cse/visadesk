@@ -62,7 +62,7 @@ try{
  let response=await call('/api/check-status',payload);assert.equal(response.status,200);assert.equal((await response.json()).result.stage,'granted_printed');
  for(const state of ['unchanged','changed']){
   mode=state;const before=postCalls;response=await call('/api/check-status',payload);assert.equal(response.status,422);
-  const data=await response.json();assert.equal(data.code,'CAPTCHA_INVALID');assert.equal(data.source,'visa');assert.equal(data.sessionCookieState,state);assert.equal(data.version,'1.1.7');assert(Number.isInteger(data.captchaAgeSeconds));
+  const data=await response.json();assert.equal(data.code,'CAPTCHA_INVALID');assert.equal(data.source,'visa');assert.equal(data.sessionCookieState,state);assert.equal(data.version,'1.1.9');assert(Number.isInteger(data.captchaAgeSeconds));
   assert.equal(postCalls,before+1,'A rejected CAPTCHA must not trigger an automatic submit retry.');
   const serialized=JSON.stringify(data);for(const value of ['visa-session','root-renewed','reset-session','private-image-cookie','fixture-csrf',payload.passportNo,payload.applicationId])assert(!serialized.includes(value));
  }

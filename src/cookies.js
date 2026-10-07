@@ -19,6 +19,13 @@ function matching(jar,url){
  return cookies.filter(c=>(c.expires===null||c.expires>now)&&(c.hostOnly?c.domain===u.hostname:domainMatches(u.hostname,c.domain))&&pathMatches(u.pathname,c.path)&&(!c.secure||u.protocol==='https:')).sort((a,b)=>b.path.length-a.path.length||a.creation-b.creation);
 }
 export function cookieHeader(jar,url){return matching(jar,url).map(c=>c.name+'='+c.value).join('; ');}
+// Internal only: include cookie identity so duplicate names at different paths
+// remain distinguishable. The worker hashes and seals this; raw values never
+// become public diagnostics.
+export function selectedCookieSnapshot(jar,url,names){
+ const cookies=matching(jar,url);
+ return Object.fromEntries(names.map(name=>[name,cookies.filter(c=>c.name===name).map(c=>JSON.stringify([c.domain,c.path,c.value])).join('|')]));
+}
 export function acceptCookies(jar,url,headers){
  const u=new URL(url),cookies=store(jar,url),now=Date.now();
  const values=headers.flatMap(value=>value.split(/,(?=\s*[^;,=\s]+=[^;,]*)/));

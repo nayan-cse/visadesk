@@ -4,8 +4,8 @@ import {imageHash,readWithAI} from './vision.js';
 import {readWithOCRSpace,OCRSpaceError} from './ocr-space.js';
 import {readWithGemini,GeminiError} from './gemini.js';
 import {resolveOCRProvider,ocrConfigured} from './ocr-config.js';
-import {cookieHeader,acceptCookies,sessionCookieSnapshot} from './cookies.js';
-const APP_VERSION='1.1.7';
+import {cookieHeader,acceptCookies,sessionCookieSnapshot,selectedCookieSnapshot} from './cookies.js';
+const APP_VERSION='1.1.9';
 // Only this opaque instance marker is sealed in the token; it is never returned.
 // A fresh module instance models a Vercel cold start, without storing user state.
 const INSTANCE_ID=crypto.randomUUID();
@@ -61,6 +61,23 @@ const withoutComments=html=>html.replace(/<!--[\s\S]*?(?:-->|$)/g,'');
 function plain(html){return decode(withoutComments(html).replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ')).trim();}
 async function cookieFingerprint(jar,url){const value=cookieHeader(jar,url);return value?imageHash(enc.encode(value)):'';}
 function cookieState(before,after){return before===undefined||after===undefined||!before&&!after?'unknown':before===after?'unchanged':'changed';}
+const VISA_COOKIE_NAMES=['JSESSIONID','BNES_JSESSIONID','IVFRT_Cookie','BNES_IVFRT_Cookie'];
+async function visaCookieSnapshot(jar,url){
+ const raw=selectedCookieSnapshot(jar,url,VISA_COOKIE_NAMES);
+ return Object.fromEntries(await Promise.all(VISA_COOKIE_NAMES.map(async name=>[name,raw[name]?await imageHash(enc.encode(raw[name])):''])));
+}
+function visaCookieChanges(before,after){
+ return Object.fromEntries(VISA_COOKIE_NAMES.map(name=>{
+  const a=before?.[name],b=after?.[name];
+  return [name,a===undefined||b===undefined?'unknown':!a&&!b?'absent':!a?'added':!b?'removed':a===b?'unchanged':'changed'];
+ }));
+}
+function sourceVisibleHtml(html){return withoutComments(html).replace(/<([a-z0-9]+)\b[^>]*style=["\'][^"\']*display\s*:\s*none[^"\']*["\'][^>]*>[\s\S]*?<\/\1>/gi,'').replace(/<(head|script|style|nav|footer)\b[^>]*>[\s\S]*?<\/\1>/gi,'');}
+function visaReplySignals(html,url){
+ const visible=sourceVisibleHtml(html),text=plain(visible);let enquiryFormPresent=false;
+ try{parseForm(visible,url,'visa');enquiryFormPresent=true;}catch{}
+ return {captchaErrorPresent:!!captchaRejection(visible),visaStatusPhrasePresent:/\b(?:granted|processed)\s*(?:and|&)\s*printed\b|\bgranted\s*(?:but|and)?\s*not[\s-]*printed\b|\bunder\s+process(?:ing)?\b|\bvisa\s+(?:has been\s+)?(?:granted|issued|rejected|refused)\b/i.test(text),enquiryFormPresent};
+}
 function captchaRejection(visible){
  const invalid=/invalid\s*(?:captcha|security\s+code)|captcha.{0,35}(?:is\s+incorrect|incorrect|is\s+invalid|invalid|does\s+not\s+match|not\s+match)|wrong\s+(?:captcha|security\s+code)|captcha\s+(?:is\s+)?wrong|status\s*:\s*\*?\s*(?:please|plase)\s+enter\s+(?:the\s+)?correct\s+code/i;
  const notices=[...visible.matchAll(/<(div|span|td|p|ul|li)\b[^>]*(?:class|id)\s*=\s*["'][^"']*(?:alert|error|message)[^"']*["'][^>]*>([\s\S]*?)<\/\1>/gi)].map(m=>plain(m[2]));
@@ -107,7 +124,7 @@ export async function remote(url,source,jar,options={},budget=AbortSignal.timeou
    const blocked=[401,403].includes(r.status);
    throw failure(blocked?'মূল সাইট এই সার্ভারের অনুরোধ গ্রহণ করছে না। পরে আবার চেষ্টা করুন।':'মূল সাইট এখন সাড়া দিতে পারছে না। কিছুক্ষণ পরে আবার চেষ্টা করুন।',blocked?'SOURCE_ACCESS_BLOCKED':'SOURCE_UNAVAILABLE',{status:503,retryable:true,upstreamStatus:r.status});
   }
-  return {response:r,url};
+  return {response:r,url,redirectCount:redirects};
  }
  throw failure('মূল সাইট ফলাফলের বদলে বারবার অন্য পেইজে পাঠাচ্ছে। পরে আবার চেষ্টা করুন।','SOURCE_REDIRECT',{status:502,retryable:true});
 }
@@ -122,7 +139,7 @@ export function parseForm(html,url,source){
  throw failure('মূল সাইটের স্ট্যাটাস ফর্ম পাওয়া যায়নি। পরে আবার চেষ্টা করুন।','SOURCE_FORM_UNAVAILABLE',{status:502,retryable:true});
 }
 export function interpret(html,source){
- const visible=withoutComments(html).replace(/<([a-z0-9]+)\b[^>]*style=["\'][^"\']*display\s*:\s*none[^"\']*["\'][^>]*>[\s\S]*?<\/\1>/gi,'').replace(/<(head|script|style|nav|footer)\b[^>]*>[\s\S]*?<\/\1>/gi,'');
+ const visible=sourceVisibleHtml(html);
  const text=plain(visible);
  if(/no\s+(?:record|data|result)s?\s+(?:was\s+)?found|record\s+not\s+found/i.test(text))throw failure('এই নম্বরে তথ্য পাওয়া যায়নি। আবেদন ও পাসপোর্ট নম্বর মিলিয়ে দেখুন।','NO_RECORD');
  // Generic instructions such as "enter a valid captcha" are not failures.
@@ -141,6 +158,24 @@ export function interpret(html,source){
  const m=hit[0].exec(candidate),start=Math.max(0,m.index-100);const evidence=candidate.slice(start,m.index+m[0].length+180);const name=text.match(/Applicant\s*Name\s*:?\s*([A-Z][A-Z .'-]{3,70}?)(?=\s+(?:Passport|Web|Application|Delivery|Submission|Status|Process|Date)|$)/);return {label:hit[1],stage:hit[2],evidence,applicantName:name?name[1].trim():null,checkedAt:new Date().toISOString(),source:SOURCES[source].name,sourceUrl:SOURCES[source].url,deliverySteps:source==='ivac'&&workflow.length?['Received At Center','Process Initiated','Ready For Delivery','Delivered From Center'].map(label=>{const row=workflow.find(c=>c.some(v=>v.toLowerCase()===label.toLowerCase()));return {label,done:!!row&&/^(?:done|completed|yes|✓|✔)$/i.test(row[row.length-1].trim())};}):null};
 }
 export function sourceExcerpt(html){let cleaned=html.replace(/<(head|script|style|nav|footer)\b[^>]*>[\s\S]*?<\/\1>/gi,'');const text=plain(cleaned);const result=text.match(/Search Result\s+([\s\S]*?)(?=\bNote\s*:|About Us|popular Posts|$)/i);return (result?result[1]:text.split(/Note\s*:\s*\(For|Instructions for|About Us/i)[0]).trim().slice(0,1800);}
+function rootCookiePairState(jar){
+ const cookies=selectedCookieSnapshot(jar,SOURCES.visa.url,['IVFRT_Cookie','BNES_IVFRT_Cookie']);
+ return cookies.IVFRT_Cookie&&cookies.BNES_IVFRT_Cookie?'present':cookies.IVFRT_Cookie||cookies.BNES_IVFRT_Cookie?'partial':'absent';
+}
+async function loadSourceForm(source,jar,budget){
+ let navigationHeaders={};
+ if(source==='visa'){
+  const landing=await remote(SOURCES.visa.origin+'/visa/index.html',source,jar,{},budget);
+  await landing.response.text();navigationHeaders={Referer:landing.url};
+ }
+ let fetched=await remote(SOURCES[source].url,source,jar,{headers:navigationHeaders},budget);
+ let html=await fetched.response.text();
+ if(source==='visa'&&new URL(fetched.url).pathname.endsWith('/index.html')){
+  fetched=await remote(SOURCES.visa.url,source,jar,{headers:{Referer:fetched.url}},budget);html=await fetched.response.text();
+  if(new URL(fetched.url).pathname.endsWith('/index.html'))throw failure('মূল সাইট স্ট্যাটাস ফর্মের বদলে হোমপেইজ ফেরত দিচ্ছে। পরে আবার চেষ্টা করুন।','SOURCE_FORM_UNAVAILABLE',{status:502,retryable:true});
+ }
+ return parseForm(html,fetched.url,source);
+}
 async function api(request,env,path){
  const origin=request.headers.get('origin');if(origin&&origin!==new URL(request.url).origin)return json({error:'অনুরোধ গ্রহণযোগ্য নয়।'},403);
  if(path==='/api/config'&&request.method==='GET'){const provider=resolveOCRProvider(env);return json({version:APP_VERSION,provider,configured:ocrConfigured(env,provider)});}
@@ -149,17 +184,23 @@ async function api(request,env,path){
  try{let b;try{b=await request.json();}catch{throw failure('অনুরোধের তথ্য গ্রহণযোগ্য নয়।','INVALID_INPUT',{status:400});}if(!b||!Object.hasOwn(SOURCES,b.source))return json({error:'সঠিক উৎস নির্বাচন করুন।',code:'INVALID_INPUT'},400);
  const budget=AbortSignal.timeout(SOURCE_BUDGET_MS);
  if(path==='/api/prepare'){
- const jar={};let navigationHeaders={};if(b.source==='visa'){const landing=await remote(SOURCES.visa.origin+'/visa/index.html',b.source,jar,{},budget);await landing.response.text();navigationHeaders={Referer:landing.url};}
- let fetched=await remote(SOURCES[b.source].url,b.source,jar,{headers:navigationHeaders},budget);let html=await fetched.response.text();
- if(b.source==='visa'&&new URL(fetched.url).pathname.endsWith('/index.html')){fetched=await remote(SOURCES.visa.url,b.source,jar,{headers:{Referer:fetched.url}},budget);html=await fetched.response.text();if(new URL(fetched.url).pathname.endsWith('/index.html'))throw failure('মূল সাইট স্ট্যাটাস ফর্মের বদলে হোমপেইজ ফেরত দিচ্ছে। পরে আবার চেষ্টা করুন।','SOURCE_FORM_UNAVAILABLE',{status:502,retryable:true});}
- const f=parseForm(html,fetched.url,b.source);
+ let jar={};let f=await loadSourceForm(b.source,jar,budget),visaBootstrap;
+ if(b.source==='visa'){
+  const initialRootCookiePair=rootCookiePairState(jar);let attempts=1;
+  // Observed failures sometimes have neither root cookie. Before displaying any
+  // CAPTCHA, retry normal navigation once with a new jar/form. The source can
+  // legitimately omit these cookies, so absence never becomes a CAPTCHA error.
+  if(initialRootCookiePair==='absent'){jar={};f=await loadSourceForm(b.source,jar,budget);attempts=2;}
+  visaBootstrap={attempts,initialRootCookiePair,finalRootCookiePair:rootCookiePairState(jar)};
+ }
  const formCookies=await cookieFingerprint(jar,f.action);
+ const formVisaCookies=b.source==='visa'?await visaCookieSnapshot(jar,f.action):undefined;
  // The source's own refreshCaptcha() uses captcha?rand=... to fetch a new image.
  const imageUrl=new URL(f.image);if(b.source==='visa'&&imageUrl.pathname==='/visa/captcha')imageUrl.searchParams.set('rand',String(Date.now()));
  const img=await remote(imageUrl.href,b.source,jar,{headers:{Referer:f.referer,'Cache-Control':'no-cache',Pragma:'no-cache'}},budget);const mime=img.response.headers.get('content-type')?.split(';')[0].trim().toLowerCase();
  if(!['image/png','image/jpeg','image/gif','image/webp'].includes(mime))throw failure('মূল সাইট থেকে ছবিটি পাওয়া যায়নি। আবার নতুন ছবি নিন।','SOURCE_IMAGE_UNAVAILABLE',{status:502,retryable:true,needsNewCaptcha:true});
  const bytes=new Uint8Array(await img.response.arrayBuffer());if(!bytes.length||bytes.length>1000000)throw failure('ছবিটি গ্রহণযোগ্য নয়। আবার নতুন ছবি নিন।','SOURCE_IMAGE_UNAVAILABLE',{status:502,retryable:true,needsNewCaptcha:true});
- const captchaHash=await imageHash(bytes);const imageCookies=await cookieFingerprint(jar,f.action);const createdAt=Date.now(),exp=createdAt+5*60*1000;const token=await seal({source:b.source,form:f,jar,exp,createdAt,captchaHash,imageCookies,formImageCookieState:cookieState(formCookies,imageCookies),preparedInstance:INSTANCE_ID,preparedRegion:runtimeRegion(env),owner:request.headers.get('x-visadesk-session')||''},env);return json({token,expiresAt:exp,captcha:'data:'+mime+';base64,'+imageBase64(bytes)});
+ const captchaHash=await imageHash(bytes);const imageCookies=await cookieFingerprint(jar,f.action);const imageVisaCookies=b.source==='visa'?await visaCookieSnapshot(jar,f.action):undefined;const createdAt=Date.now(),exp=createdAt+5*60*1000;const token=await seal({source:b.source,form:f,jar,exp,createdAt,captchaHash,imageCookies,formImageCookieState:cookieState(formCookies,imageCookies),...(b.source==='visa'?{visaCookies:{form:formVisaCookies,image:imageVisaCookies},visaBootstrap}:{}),preparedInstance:INSTANCE_ID,preparedRegion:runtimeRegion(env),owner:request.headers.get('x-visadesk-session')||''},env);return json({token,expiresAt:exp,captcha:'data:'+mime+';base64,'+imageBase64(bytes)});
  }
  if(path==='/api/read-captcha'){
  const session=await open(b.token,env,request);if(session.source!==b.source)throw failure('ছবির উৎস মেলেনি। নতুন ছবি নিন।','SESSION_EXPIRED',{status:409,retryable:true,needsNewCaptcha:true});
@@ -176,11 +217,13 @@ async function api(request,env,path){
  const session=await open(b.token,env,request);if(session.source!==b.source)throw failure('ছবির উৎস মেলেনি। নতুন ছবি নিন।','SESSION_EXPIRED',{status:409,retryable:true,needsNewCaptcha:true});const f=session.form;const params=new URLSearchParams(f.fields);params.set(f.app,b.applicationId);if(f.passport)params.set(f.passport,b.passportNo);params.set(f.captcha,b.captcha);
  const before=sessionCookieSnapshot(session.jar,f.action);
  const submitCookies=await cookieFingerprint(session.jar,f.action);
+ const submitVisaCookies=b.source==='visa'?await visaCookieSnapshot(session.jar,f.action):undefined;
  const fetched=await remote(f.action,b.source,session.jar,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Referer:f.referer,Origin:SOURCES[b.source].origin},body:params.toString()},budget);
  if(b.source==='visa'&&/\/(?:index\.html|login)\/?$/i.test(new URL(fetched.url).pathname)){await discard(fetched.response);throw failure('মূল সাইট ফলাফলের বদলে আগের পেইজে পাঠিয়েছে। নতুন ছবি নিয়ে আবার নিশ্চিত করুন।','SOURCE_SESSION_EXPIRED',{status:409,retryable:true,needsNewCaptcha:true});}
  const html=await fetched.response.text();
  const after=sessionCookieSnapshot(session.jar,f.action),responseCookies=await cookieFingerprint(session.jar,f.action);
  const diagnostics={source:b.source,version:APP_VERSION,sessionCookieState:before?(before===after?'unchanged':'changed'):'unknown',captchaAgeSeconds:Math.max(0,Math.floor((Date.now()-(session.createdAt??session.exp-300000))/1000)),captchaLength:String(b.captcha).length,formImageCookieState:session.formImageCookieState??'unknown',imageSubmitCookieState:cookieState(session.imageCookies,submitCookies),submitResponseCookieState:cookieState(submitCookies,responseCookies),runtimeContinuity:session.preparedInstance?(session.preparedInstance===INSTANCE_ID?'same-instance':'different-instance'):'unknown',prepareRegion:session.preparedRegion??'unknown',checkRegion:runtimeRegion(env)};
+ if(b.source==='visa')Object.assign(diagnostics,{visaBootstrap:session.visaBootstrap??{attempts:null,initialRootCookiePair:'unknown',finalRootCookiePair:'unknown'},visaCookieChanges:{formToImage:visaCookieChanges(session.visaCookies?.form,session.visaCookies?.image),imageToSubmit:visaCookieChanges(session.visaCookies?.image,submitVisaCookies),submitToResponse:visaCookieChanges(submitVisaCookies,await visaCookieSnapshot(session.jar,f.action))},sourceHttpStatus:fetched.response.status,sourceRedirectCount:fetched.redirectCount,sourceReplySignals:visaReplySignals(html,fetched.url)});
  try{return json({result:interpret(html,b.source),diagnostics});}
  catch(error){
   if(error instanceof TrackerError)error.diagnostics={...diagnostics,...error.diagnostics};

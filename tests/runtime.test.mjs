@@ -60,7 +60,7 @@ try{
  // A v1.1.6 token lacks provenance fields; they must remain explicitly unknown.
  const key=await crypto.subtle.importKey('raw',Buffer.from(env.SESSION_ENCRYPTION_KEY,'base64url'),'AES-GCM',false,['encrypt','decrypt']);
  const [iv,cipher]=session.token.split('.');const old=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:Buffer.from(iv,'base64url')},key,Buffer.from(cipher,'base64url'))));
- for(const name of ['imageCookies','formImageCookieState','preparedInstance','preparedRegion'])delete old[name];
+ for(const name of ['imageCookies','formImageCookieState','preparedInstance','preparedRegion','visaCookies','visaBootstrap'])delete old[name];
  const nextIv=randomBytes(12);const encrypted=await crypto.subtle.encrypt({name:'AES-GCM',iv:nextIv},key,new TextEncoder().encode(JSON.stringify(old)));
  session.token=nextIv.toString('base64url')+'.'+Buffer.from(encrypted).toString('base64url');
  response=await call(worker,'/api/check-status',payload(session));data=await response.json();assert.equal(response.status,200);assert.equal(data.diagnostics.runtimeContinuity,'unknown');assert.equal(data.diagnostics.formImageCookieState,'unknown');assert.equal(data.diagnostics.imageSubmitCookieState,'unknown');privateFieldsAbsent(data);

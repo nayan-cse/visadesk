@@ -32,7 +32,7 @@ try{
  // The unified function keeps all stages compatible with the same browser token.
  const oldNonce=nonce;r=await call('/api/track?action=prepare',{source:'visa'},cookie);assert.equal(r.status,200);assert.notEqual(nonce,oldNonce);const next=await r.json();
  r=await call('/api/track?action=check-status',{...body,token:next.token},cookie);assert.equal(r.status,200);assert.equal((await r.json()).result.stage,'granted_not_printed');assert.equal(captchaRequests,2);
- r=await handle(new Request('https://app.test/api/track?action=config',{headers:{cookie}}),env);assert.equal(r.status,200);assert.equal((await r.json()).version,'1.1.7');
+ r=await handle(new Request('https://app.test/api/track?action=config',{headers:{cookie}}),env);assert.equal(r.status,200);assert.equal((await r.json()).version,'1.1.9');
  r=await call('/api/track?action=unknown',{});assert.equal(r.status,400);r=await call('/api/track?action=prepare',{source:'visa'},'visadesk_session='+'f'.repeat(64));const other=await r.json();
  r=await call('/api/track?action=check-status',{...body,token:other.token},cookie);assert.equal(r.status,409);
  // Some runtimes expose getSetCookie() but leave it empty: fall back to header.
