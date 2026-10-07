@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
 import {handle} from '../src/handler.js';
 import {remote} from '../src/worker.js';
+import {cookieHeader} from '../src/cookies.js';
 const realFetch=globalThis.fetch;
 const env={SESSION_ENCRYPTION_KEY:randomBytes(32).toString('base64url')};
 const form='<form method="POST" action="StatusEnquiry"><input name="filerfno" id="application_id"><input name="passport_number"><input name="captcha"><input type="hidden" name="token" value="source-csrf"><img id="capt" src="captcha"><input name="submit_btn" type="submit" value="Check Status"></form>';
@@ -31,11 +32,11 @@ try{
  // The unified function keeps all stages compatible with the same browser token.
  const oldNonce=nonce;r=await call('/api/track?action=prepare',{source:'visa'},cookie);assert.equal(r.status,200);assert.notEqual(nonce,oldNonce);const next=await r.json();
  r=await call('/api/track?action=check-status',{...body,token:next.token},cookie);assert.equal(r.status,200);assert.equal((await r.json()).result.stage,'granted_not_printed');assert.equal(captchaRequests,2);
- r=await handle(new Request('https://app.test/api/track?action=config',{headers:{cookie}}),env);assert.equal(r.status,200);assert.equal((await r.json()).version,'1.1.5');
+ r=await handle(new Request('https://app.test/api/track?action=config',{headers:{cookie}}),env);assert.equal(r.status,200);assert.equal((await r.json()).version,'1.1.7');
  r=await call('/api/track?action=unknown',{});assert.equal(r.status,400);r=await call('/api/track?action=prepare',{source:'visa'},'visadesk_session='+'f'.repeat(64));const other=await r.json();
  r=await call('/api/track?action=check-status',{...body,token:other.token},cookie);assert.equal(r.status,409);
  // Some runtimes expose getSetCookie() but leave it empty: fall back to header.
  globalThis.fetch=async()=>{const headers=new Headers({'Set-Cookie':'one=a; Path=/, two=b; Path=/'});headers.getSetCookie=()=>[];return {ok:true,status:200,headers};};
- const jar={};await remote('https://www.passtrack.net/regular_passport.php','ivac',jar);assert.deepEqual(jar,{one:'a',two:'b'});
+ const jar={};await remote('https://www.passtrack.net/regular_passport.php','ivac',jar);assert.equal(cookieHeader(jar,'https://www.passtrack.net/regular_passport.php'),'one=a; two=b');
 }finally{globalThis.fetch=realFetch;}
 console.log('PASS: merged Set-Cookie session continuity, Expires comma, empty getSetCookie fallback, fresh CAPTCHA nonce, unified API routes and browser token binding.');

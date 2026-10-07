@@ -14,14 +14,14 @@ try{
  // Simulate Vercel moving JS modules away from the explicitly included HTML.
  mkdirSync(join(dir,'bundle'));mkdirSync(join(dir,'src'));
  writeFileSync(join(dir,'package.json'),JSON.stringify({type:'module'}));
- for(const name of ['worker.js','handler.js','vision.js','ocr-space.js','gemini.js','ocr-config.js'])copyFileSync(new URL('src/'+name,root),join(dir,'bundle',name));
+ for(const name of ['worker.js','handler.js','vision.js','ocr-space.js','gemini.js','ocr-config.js','cookies.js'])copyFileSync(new URL('src/'+name,root),join(dir,'bundle',name));
  copyFileSync(new URL('src/index.html',root),join(dir,'src','index.html'));
  run(`
   import assert from 'node:assert/strict';
   import worker from './bundle/worker.js';
   import {handle} from './bundle/handler.js';
   const config=await worker.fetch(new Request('https://test.invalid/api/config'),{});
-  assert.equal(config.status,200);assert.equal((await config.json()).version,'1.1.5');
+  assert.equal(config.status,200);assert.equal((await config.json()).version,'1.1.7');
   const page=await handle(new Request('https://test.invalid/'),{});
   assert.equal(page.status,200);assert((await page.text()).includes('delivery-step-cards'));
   assert(page.headers.get('set-cookie').includes('HttpOnly'));

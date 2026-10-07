@@ -4,7 +4,12 @@ import {imageHash,readWithAI} from './vision.js';
 import {readWithOCRSpace,OCRSpaceError} from './ocr-space.js';
 import {readWithGemini,GeminiError} from './gemini.js';
 import {resolveOCRProvider,ocrConfigured} from './ocr-config.js';
-const APP_VERSION='1.1.5';
+import {cookieHeader,acceptCookies,sessionCookieSnapshot} from './cookies.js';
+const APP_VERSION='1.1.7';
+// Only this opaque instance marker is sealed in the token; it is never returned.
+// A fresh module instance models a Vercel cold start, without storing user state.
+const INSTANCE_ID=crypto.randomUUID();
+function runtimeRegion(env){return /^[a-z]{3}\d$/.test(env.VERCEL_REGION||'')?env.VERCEL_REGION:env.VERCEL?'unknown':'local';}
 export async function readCaptcha(image,source,env,provider,signal){
  if(provider==='gemini'){
   let primary,problem,reason;
@@ -37,9 +42,9 @@ export async function readCaptcha(image,source,env,provider,signal){
  return provider==='ocr-space'?readWithOCRSpace(image,source,env,{signal}):readWithAI(image,source,env);
 }
 class TrackerError extends Error {
- constructor(message,code,{status=422,retryable=false,needsNewCaptcha=false,upstreamStatus}={}) {
+ constructor(message,code,{status=422,retryable=false,needsNewCaptcha=false,upstreamStatus,diagnostics}={}) {
   super(message);this.name='TrackerError';
-  Object.assign(this,{code,status,retryable,needsNewCaptcha,upstreamStatus});
+  Object.assign(this,{code,status,retryable,needsNewCaptcha,upstreamStatus,diagnostics});
  }
 }
 const failure=(message,code,options)=>new TrackerError(message,code,options);
@@ -52,7 +57,16 @@ const enc = new TextEncoder();
 const json = (data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 const decode = s=>String(s||'').replace(/&#(x[0-9a-f]+|\d+);/gi,(_,v)=>{const n=v[0].toLowerCase()==='x'?parseInt(v.slice(1),16):Number(v);return n<=0x10ffff?String.fromCodePoint(n):'';}).replace(/&(amp|quot|apos|nbsp|lt|gt|ndash|mdash);/g,(_,v)=>({amp:'&',quot:'"',apos:"'",nbsp:' ',lt:'<',gt:'>',ndash:'-',mdash:'-'})[v]);
 function attrs(tag){const o={};for(const m of tag.matchAll(/([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g))o[m[1].toLowerCase()]=decode(m[2]??m[3]??m[4]);return o;}
-function plain(html){return decode(html.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ')).trim();}
+const withoutComments=html=>html.replace(/<!--[\s\S]*?(?:-->|$)/g,'');
+function plain(html){return decode(withoutComments(html).replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ')).trim();}
+async function cookieFingerprint(jar,url){const value=cookieHeader(jar,url);return value?imageHash(enc.encode(value)):'';}
+function cookieState(before,after){return before===undefined||after===undefined||!before&&!after?'unknown':before===after?'unchanged':'changed';}
+function captchaRejection(visible){
+ const invalid=/invalid\s*(?:captcha|security\s+code)|captcha.{0,35}(?:is\s+incorrect|incorrect|is\s+invalid|invalid|does\s+not\s+match|not\s+match)|wrong\s+(?:captcha|security\s+code)|captcha\s+(?:is\s+)?wrong|status\s*:\s*\*?\s*(?:please|plase)\s+enter\s+(?:the\s+)?correct\s+code/i;
+ const notices=[...visible.matchAll(/<(div|span|td|p|ul|li)\b[^>]*(?:class|id)\s*=\s*["'][^"']*(?:alert|error|message)[^"']*["'][^>]*>([\s\S]*?)<\/\1>/gi)].map(m=>plain(m[2]));
+ if(notices.some(n=>invalid.test(n)||/(?:please|plase)\s+enter\s+(?:the\s+)?correct\s+(?:code|captcha)/i.test(n)))return 'captcha-error-notice';
+ return invalid.test(plain(visible))?'captcha-page-text':null;
+}
 function b64(bytes){let s='';for(const b of bytes)s+=String.fromCharCode(b);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
 function imageBase64(bytes){let s='';for(const b of bytes)s+=String.fromCharCode(b);return btoa(s);}
 function un64(s){return Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));}
@@ -68,7 +82,7 @@ export async function remote(url,source,jar,options={},budget=AbortSignal.timeou
  while(redirects<5){
   budget.throwIfAborted();
   const headers=new Headers({'User-Agent':'Mozilla/5.0','Accept':'text/html,image/*;q=0.9,*/*;q=0.8','Accept-Language':'en-US,en;q=0.9',...options.headers});
-  const cookie=Object.entries(jar).map(([k,v])=>k+'='+v).join('; ');if(cookie)headers.set('Cookie',cookie);
+  const cookie=cookieHeader(jar,url);if(cookie)headers.set('Cookie',cookie);
   const canRetry=!options.method||options.method==='GET';let r;
   try{r=await fetch(url,{...options,headers,cache:'no-store',redirect:'manual',signal:AbortSignal.any([budget,AbortSignal.timeout(12000)])});}
   catch(e){
@@ -80,8 +94,7 @@ export async function remote(url,source,jar,options={},budget=AbortSignal.timeou
   if(!cookieHeaders?.length)cookieHeaders=[r.headers.get('set-cookie')||''];
   // Proxies can combine several cookies into one header even when getSetCookie
   // exists. Split every returned entry, preserving the comma in Expires dates.
-  const cookies=cookieHeaders.flatMap(c=>c.split(/,(?=\s*[^;,=\s]+=[^;,]*)/));
-  for(const c of cookies){const m=c.match(/^\s*([^=;,\s]+)=([^;]*)/);if(m){const expiry=c.match(/;\s*expires=([^;]+)/i),maxAge=c.match(/;\s*max-age=(-?\d+)(?:;|$)/i);const expired=maxAge?Number(maxAge[1])<=0:expiry&&Date.parse(expiry[1])<Date.now();if(expired)delete jar[m[1]];else jar[m[1]]=m[2];}}
+  acceptCookies(jar,url,cookieHeaders);
   if(r.status>=300&&r.status<400&&r.headers.get('location')){
    const next=allowed(new URL(r.headers.get('location'),url).href,source);await discard(r);redirects++;
    if(options.method==='POST'&&[307,308].includes(r.status))throw failure('মূল সাইট জমা দেওয়ার অনুরোধ অন্য পেইজে পাঠিয়েছে। নতুন ছবি নিয়ে আবার চেক করুন।','SOURCE_REDIRECT',{status:502,retryable:true,needsNewCaptcha:true});
@@ -99,6 +112,7 @@ export async function remote(url,source,jar,options={},budget=AbortSignal.timeou
  throw failure('মূল সাইট ফলাফলের বদলে বারবার অন্য পেইজে পাঠাচ্ছে। পরে আবার চেষ্টা করুন।','SOURCE_REDIRECT',{status:502,retryable:true});
 }
 export function parseForm(html,url,source){
+ html=withoutComments(html).replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');
  const forms=[...html.matchAll(/<form\b([^>]*)>([\s\S]*?)<\/form>/gi)];
  for(const f of forms){const fa=attrs(f[1]);if((fa.method||'get').toLowerCase()!=='post')continue;const tags=[...f[2].matchAll(/<input\b[^>]*>/gi)].map(m=>attrs(m[0]));const fields={};let app='',passport='',captcha='';
  for(const t of tags){t.type=(t.type||'text').toLowerCase();if(!t.name||['button','reset','file'].includes(t.type))continue;if(t.type==='hidden'||t.type==='submit')fields[t.name]=t.value||'';const hint=[t.name,t.id,t.placeholder].join(' ').toLowerCase();if(/captcha|verification|verify|security|txtcode|code/.test(hint)&&t.type!=='hidden')captcha=t.name;else if(/passport/.test(hint)&&t.type!=='hidden')passport=t.name;else if(/application|app.?id|appref|web.?file|file.?no|reg.?no/.test(hint)&&t.type!=='hidden')app=t.name;}
@@ -108,14 +122,13 @@ export function parseForm(html,url,source){
  throw failure('মূল সাইটের স্ট্যাটাস ফর্ম পাওয়া যায়নি। পরে আবার চেষ্টা করুন।','SOURCE_FORM_UNAVAILABLE',{status:502,retryable:true});
 }
 export function interpret(html,source){
- const visible=html.replace(/<([a-z0-9]+)\b[^>]*style=["\'][^"\']*display\s*:\s*none[^"\']*["\'][^>]*>[\s\S]*?<\/\1>/gi,'').replace(/<(head|script|style|nav|footer)\b[^>]*>[\s\S]*?<\/\1>/gi,'');
+ const visible=withoutComments(html).replace(/<([a-z0-9]+)\b[^>]*style=["\'][^"\']*display\s*:\s*none[^"\']*["\'][^>]*>[\s\S]*?<\/\1>/gi,'').replace(/<(head|script|style|nav|footer)\b[^>]*>[\s\S]*?<\/\1>/gi,'');
  const text=plain(visible);
  if(/no\s+(?:record|data|result)s?\s+(?:was\s+)?found|record\s+not\s+found/i.test(text))throw failure('এই নম্বরে তথ্য পাওয়া যায়নি। আবেদন ও পাসপোর্ট নম্বর মিলিয়ে দেখুন।','NO_RECORD');
  // Generic instructions such as "enter a valid captcha" are not failures.
  // Keep the source's actual IVAC error ("Status: * Plase enter correct code").
- const invalid=/invalid\s*(?:captcha|security\s+code)|captcha.{0,35}(?:is\s+incorrect|incorrect|is\s+invalid|invalid|does\s+not\s+match|not\s+match)|wrong\s+(?:captcha|security\s+code)|captcha\s+(?:is\s+)?wrong|status\s*:\s*\*?\s*(?:please|plase)\s+enter\s+(?:the\s+)?correct\s+code/i;
- const errorNotices=[...visible.matchAll(/<(?:div|span|td|p)\b[^>]*(?:class|id)\s*=\s*["'][^"']*(?:alert|error|message)[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span|td|p)>/gi)].map(m=>plain(m[1]));
- if(invalid.test(text)||errorNotices.some(n=>/(?:please|plase)\s+enter\s+(?:the\s+)?correct\s+(?:code|captcha)/i.test(n)))throw failure('মূল সাইট ক্যাপচাটি গ্রহণ করেনি। নতুন ছবি নিয়ে আবার নিশ্চিত করুন।','CAPTCHA_INVALID',{retryable:true,needsNewCaptcha:true});
+ const rejection=captchaRejection(visible);
+ if(rejection)throw failure('মূল সাইট ক্যাপচাটি গ্রহণ করেনি। নতুন ছবি নিয়ে আবার নিশ্চিত করুন।','CAPTCHA_INVALID',{retryable:true,needsNewCaptcha:true,diagnostics:{sourceReplyKind:rejection}});
  if(/session\s+(?:has\s+)?(?:expired|timed\s+out)|session\s+(?:is\s+)?invalid/i.test(text))throw failure('মূল সাইটে আগের ছবির সময় শেষ হয়েছে। নতুন ছবি নিয়ে আবার নিশ্চিত করুন।','SOURCE_SESSION_EXPIRED',{status:409,retryable:true,needsNewCaptcha:true});
  if(/<title[^>]*>\s*(?:just a moment|access denied|forbidden)/i.test(html)||/verify\s+(?:that\s+)?you\s+are\s+human|request\s+(?:has\s+been\s+)?blocked/i.test(text))throw failure('মূল সাইট এই সার্ভারের অনুরোধ গ্রহণ করছে না। পরে আবার চেষ্টা করুন।','SOURCE_ACCESS_BLOCKED',{status:503,retryable:true});
  const rules=source==='visa'?[[/\bgranted\s*(?:but|and)?\s*not[\s-]*printed\b/i,'Granted but Not-Printed','granted_not_printed'],[/\b(?:granted|processed)\s*(?:and|&)\s*printed\b/i,'Granted and Printed','granted_printed'],[/under\s+process(?:ing)?/i,'Under Processing','processing'],[/visa\s+(?:has been\s+)?(?:granted|issued)|application\s+(?:is\s+)?granted/i,'Visa Granted','success'],[/visa\s+(?:has been\s+)?(?:rejected|refused)|application\s+(?:is\s+)?rejected/i,'Visa Refused','attention']]:[[/passport\s+(?:has been\s+)?delivered|delivered\s+from\s+(?:the\s+)?cent(?:er|re)/i,'Delivered From Center','delivered'],[/ready\s+for\s+delivery/i,'Ready For Delivery','ready'],[/process\s+initiated|under\s+process(?:ing)?/i,'Process Initiated','processing'],[/received\s+at\s+(?:the\s+)?cent(?:er|re)/i,'Received At Center','received']];
@@ -140,12 +153,13 @@ async function api(request,env,path){
  let fetched=await remote(SOURCES[b.source].url,b.source,jar,{headers:navigationHeaders},budget);let html=await fetched.response.text();
  if(b.source==='visa'&&new URL(fetched.url).pathname.endsWith('/index.html')){fetched=await remote(SOURCES.visa.url,b.source,jar,{headers:{Referer:fetched.url}},budget);html=await fetched.response.text();if(new URL(fetched.url).pathname.endsWith('/index.html'))throw failure('মূল সাইট স্ট্যাটাস ফর্মের বদলে হোমপেইজ ফেরত দিচ্ছে। পরে আবার চেষ্টা করুন।','SOURCE_FORM_UNAVAILABLE',{status:502,retryable:true});}
  const f=parseForm(html,fetched.url,b.source);
+ const formCookies=await cookieFingerprint(jar,f.action);
  // The source's own refreshCaptcha() uses captcha?rand=... to fetch a new image.
  const imageUrl=new URL(f.image);if(b.source==='visa'&&imageUrl.pathname==='/visa/captcha')imageUrl.searchParams.set('rand',String(Date.now()));
  const img=await remote(imageUrl.href,b.source,jar,{headers:{Referer:f.referer,'Cache-Control':'no-cache',Pragma:'no-cache'}},budget);const mime=img.response.headers.get('content-type')?.split(';')[0].trim().toLowerCase();
  if(!['image/png','image/jpeg','image/gif','image/webp'].includes(mime))throw failure('মূল সাইট থেকে ছবিটি পাওয়া যায়নি। আবার নতুন ছবি নিন।','SOURCE_IMAGE_UNAVAILABLE',{status:502,retryable:true,needsNewCaptcha:true});
  const bytes=new Uint8Array(await img.response.arrayBuffer());if(!bytes.length||bytes.length>1000000)throw failure('ছবিটি গ্রহণযোগ্য নয়। আবার নতুন ছবি নিন।','SOURCE_IMAGE_UNAVAILABLE',{status:502,retryable:true,needsNewCaptcha:true});
- const captchaHash=await imageHash(bytes);const exp=Date.now()+5*60*1000;const token=await seal({source:b.source,form:f,jar,exp,captchaHash,owner:request.headers.get('x-visadesk-session')||''},env);return json({token,expiresAt:exp,captcha:'data:'+mime+';base64,'+imageBase64(bytes)});
+ const captchaHash=await imageHash(bytes);const imageCookies=await cookieFingerprint(jar,f.action);const createdAt=Date.now(),exp=createdAt+5*60*1000;const token=await seal({source:b.source,form:f,jar,exp,createdAt,captchaHash,imageCookies,formImageCookieState:cookieState(formCookies,imageCookies),preparedInstance:INSTANCE_ID,preparedRegion:runtimeRegion(env),owner:request.headers.get('x-visadesk-session')||''},env);return json({token,expiresAt:exp,captcha:'data:'+mime+';base64,'+imageBase64(bytes)});
  }
  if(path==='/api/read-captcha'){
  const session=await open(b.token,env,request);if(session.source!==b.source)throw failure('ছবির উৎস মেলেনি। নতুন ছবি নিন।','SESSION_EXPIRED',{status:409,retryable:true,needsNewCaptcha:true});
@@ -160,14 +174,23 @@ async function api(request,env,path){
  if(path==='/api/check-status'){
  if(!/^BGD[A-Z0-9]{7,25}$/.test(String(b.applicationId||''))||! /^[A-Z0-9]{5,20}$/.test(String(b.passportNo||'')))throw failure('আবেদন ও পাসপোর্ট নম্বর ঠিক করে লিখুন।','INVALID_INPUT',{status:400});if(!/^[\w -]{1,32}$/.test(String(b.captcha||'')))throw failure('ছবির লেখাটি পূরণ করুন।','CAPTCHA_REQUIRED',{status:400});
  const session=await open(b.token,env,request);if(session.source!==b.source)throw failure('ছবির উৎস মেলেনি। নতুন ছবি নিন।','SESSION_EXPIRED',{status:409,retryable:true,needsNewCaptcha:true});const f=session.form;const params=new URLSearchParams(f.fields);params.set(f.app,b.applicationId);if(f.passport)params.set(f.passport,b.passportNo);params.set(f.captcha,b.captcha);
+ const before=sessionCookieSnapshot(session.jar,f.action);
+ const submitCookies=await cookieFingerprint(session.jar,f.action);
  const fetched=await remote(f.action,b.source,session.jar,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Referer:f.referer,Origin:SOURCES[b.source].origin},body:params.toString()},budget);
  if(b.source==='visa'&&/\/(?:index\.html|login)\/?$/i.test(new URL(fetched.url).pathname)){await discard(fetched.response);throw failure('মূল সাইট ফলাফলের বদলে আগের পেইজে পাঠিয়েছে। নতুন ছবি নিয়ে আবার নিশ্চিত করুন।','SOURCE_SESSION_EXPIRED',{status:409,retryable:true,needsNewCaptcha:true});}
- const html=await fetched.response.text();return json({result:interpret(html,b.source)});
+ const html=await fetched.response.text();
+ const after=sessionCookieSnapshot(session.jar,f.action),responseCookies=await cookieFingerprint(session.jar,f.action);
+ const diagnostics={source:b.source,version:APP_VERSION,sessionCookieState:before?(before===after?'unchanged':'changed'):'unknown',captchaAgeSeconds:Math.max(0,Math.floor((Date.now()-(session.createdAt??session.exp-300000))/1000)),captchaLength:String(b.captcha).length,formImageCookieState:session.formImageCookieState??'unknown',imageSubmitCookieState:cookieState(session.imageCookies,submitCookies),submitResponseCookieState:cookieState(submitCookies,responseCookies),runtimeContinuity:session.preparedInstance?(session.preparedInstance===INSTANCE_ID?'same-instance':'different-instance'):'unknown',prepareRegion:session.preparedRegion??'unknown',checkRegion:runtimeRegion(env)};
+ try{return json({result:interpret(html,b.source),diagnostics});}
+ catch(error){
+  if(error instanceof TrackerError)error.diagnostics={...diagnostics,...error.diagnostics};
+  throw error;
+ }
  }return json({error:'Not found'},404);
  }catch(e){
   if(e instanceof OCRSpaceError||e instanceof GeminiError)return json({error:'ছবির লেখাটি নিজে লিখে মিলিয়ে নিন।',code:e.code,retryable:e.retryable,verified:false,...(e.fallbackAttempted?{requestedProvider:e.requestedProvider,fallbackAttempted:true,fallbackReason:e.fallbackReason}:{})},503);
   const problem=e instanceof TrackerError?e:/(?:TimeoutError|AbortError)/.test(e.name)?failure('মূল সাইট সময়মতো সাড়া দেয়নি। কিছুক্ষণ পরে আবার চেষ্টা করুন।','SOURCE_TIMEOUT',{status:504,retryable:true}):failure(path==='/api/read-captcha'?'ছবির লেখাটি নিজে লিখে মিলিয়ে নিন।':'এখন ফলাফল আনা যায়নি। কিছুক্ষণ পরে আবার চেষ্টা করুন।',path==='/api/read-captcha'?'OCR_UNAVAILABLE':'INTERNAL_ERROR',{status:503,retryable:true});
-  return json({error:problem.message,code:problem.code,retryable:problem.retryable,needsNewCaptcha:problem.needsNewCaptcha,verified:false},problem.status);
+  return json({error:problem.message,code:problem.code,retryable:problem.retryable,needsNewCaptcha:problem.needsNewCaptcha,verified:false,...problem.diagnostics},problem.status);
  }
 }
 
