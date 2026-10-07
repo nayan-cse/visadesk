@@ -12,13 +12,15 @@ function providerFailure(data,status=200){
  if(/(?:invalid|unsupported).{0,25}engine|engine.{0,30}(?:invalid|unsupported|not\s+supported)/i.test(detail))return new OCRSpaceError('OCR_SETTINGS_INVALID',false);
  return new OCRSpaceError('OCR_SERVICE_UNAVAILABLE');
 }
-export async function readWithOCRSpace(image,source,env){
+export async function readWithOCRSpace(image,source,env,{signal}={}){
+ if(signal?.aborted)throw new OCRSpaceError('OCR_TIMEOUT');
  const engine=String(env.OCR_SPACE_ENGINE||'2').trim();
  if(!['2','3'].includes(engine))throw new OCRSpaceError('OCR_SETTINGS_INVALID',false);
  const form=new FormData();form.set('base64Image',image);form.set('language','eng');form.set('OCREngine',engine);form.set('scale','true');form.set('isOverlayRequired','false');form.set('isCreateSearchablePdf','false');
  let response;
- try{response=await fetch('https://api.ocr.space/parse/image',{method:'POST',headers:{apikey:env.OCR_SPACE_API_KEY.trim()},body:form,signal:AbortSignal.timeout(25000)});}catch(e){throw new OCRSpaceError(['AbortError','TimeoutError'].includes(e?.name)?'OCR_TIMEOUT':'OCR_NETWORK');}
- let data;try{data=await response.json();}catch{throw providerFailure(null,response.status);}
+ const timeout=AbortSignal.timeout(25000);
+ try{response=await fetch('https://api.ocr.space/parse/image',{method:'POST',headers:{apikey:env.OCR_SPACE_API_KEY.trim()},body:form,signal:signal?AbortSignal.any([signal,timeout]):timeout});}catch(e){throw new OCRSpaceError(timeout.aborted||signal?.aborted||['AbortError','TimeoutError'].includes(e?.name)?'OCR_TIMEOUT':'OCR_NETWORK');}
+ let data;try{data=await response.json();}catch(e){if(timeout.aborted||signal?.aborted||['AbortError','TimeoutError'].includes(e?.name))throw new OCRSpaceError('OCR_TIMEOUT');throw providerFailure(null,response.status);}
  if(!response.ok)throw providerFailure(data,response.status);
  if(!data||typeof data!=='object')throw providerFailure(null,response.status);
  // Never echo upstream error bodies: they may include account or request details.

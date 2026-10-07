@@ -1,5 +1,7 @@
 # Vercel আপডেট — v1.1.3
 
+বর্তমান package v1.1.5; নিচের production সংশোধনগুলোও অন্তর্ভুক্ত। Gemini আগে ও OCR.space ব্যাকআপ setup-এর জন্য `GEMINI_SETUP.md` পড়ুন। নতুন deploy-এর পরে `/api/config`-এ version 1.1.5 দেখা যাবে।
+
 ## সঠিক CAPTCHA দিয়েও Visa ফলাফল না আসা
 
 সঠিক লেখা দেওয়ার পরেও মূল সাইট তার CAPTCHA সেশন চিনতে না পারলে `Invalid Captcha` ফেরত দিতে পারে। তাই এই response একা ইউজার ভুল লিখেছেন এমন প্রমাণ নয়। IVAC সফল হওয়া Visa-র আলাদা source session ঠিক আছে এমন প্রমাণও নয়।

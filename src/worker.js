@@ -2,7 +2,40 @@ import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {imageHash,readWithAI} from './vision.js';
 import {readWithOCRSpace,OCRSpaceError} from './ocr-space.js';
-const APP_VERSION='1.1.3';
+import {readWithGemini,GeminiError} from './gemini.js';
+import {resolveOCRProvider,ocrConfigured} from './ocr-config.js';
+const APP_VERSION='1.1.5';
+export async function readCaptcha(image,source,env,provider,signal){
+ if(provider==='gemini'){
+  let primary,problem,reason;
+  try{
+   primary=await readWithGemini(image,source,env,{signal});
+   if(primary.text&&primary.ready)return {...primary,requestedProvider:'gemini',fallback:false};
+   reason=primary.text?'OCR_UNCERTAIN':'OCR_NO_TEXT';
+  }
+  catch(error){
+   if(!(error instanceof GeminiError))throw error;
+   problem=error;reason=error.code;
+  }
+  // The backup is sequential and shares the total budget with the first call.
+  if(env.OCR_SPACE_API_KEY?.trim()&&!signal?.aborted){
+   try{
+    const backup=await readWithOCRSpace(image,source,env,{signal});
+    if(backup.text||!primary?.text)return {...backup,requestedProvider:'gemini',fallback:true,fallbackAttempted:true,fallbackReason:reason};
+    // Keep a usable but uncertain first candidate when the backup returns none.
+    return {...primary,requestedProvider:'gemini',fallback:false,fallbackAttempted:true,fallbackReason:reason,backupError:'OCR_NO_TEXT'};
+   }catch(error){
+    if(!(error instanceof OCRSpaceError))throw error;
+    if(primary?.text)return {...primary,ready:false,requestedProvider:'gemini',fallback:false,fallbackAttempted:true,fallbackReason:reason,backupError:error.code};
+    Object.assign(error,{requestedProvider:'gemini',fallbackAttempted:true,fallbackReason:reason});
+    throw error;
+   }
+  }
+  if(primary)return {...primary,requestedProvider:'gemini',fallback:false,fallbackAttempted:false};
+  throw problem;
+ }
+ return provider==='ocr-space'?readWithOCRSpace(image,source,env,{signal}):readWithAI(image,source,env);
+}
 class TrackerError extends Error {
  constructor(message,code,{status=422,retryable=false,needsNewCaptcha=false,upstreamStatus}={}) {
   super(message);this.name='TrackerError';
@@ -97,7 +130,7 @@ export function interpret(html,source){
 export function sourceExcerpt(html){let cleaned=html.replace(/<(head|script|style|nav|footer)\b[^>]*>[\s\S]*?<\/\1>/gi,'');const text=plain(cleaned);const result=text.match(/Search Result\s+([\s\S]*?)(?=\bNote\s*:|About Us|popular Posts|$)/i);return (result?result[1]:text.split(/Note\s*:\s*\(For|Instructions for|About Us/i)[0]).trim().slice(0,1800);}
 async function api(request,env,path){
  const origin=request.headers.get('origin');if(origin&&origin!==new URL(request.url).origin)return json({error:'অনুরোধ গ্রহণযোগ্য নয়।'},403);
- if(path==='/api/config'&&request.method==='GET'){const provider=(env.OCR_PROVIDER|| (env.OCR_SPACE_API_KEY?.trim()?'ocr-space':env.OPENAI_API_KEY?.trim()?'openai':'browser')).trim();return json({version:APP_VERSION,provider,configured:provider==='ocr-space'?!!env.OCR_SPACE_API_KEY?.trim():provider==='openai'?!!env.OPENAI_API_KEY?.trim():false});}
+ if(path==='/api/config'&&request.method==='GET'){const provider=resolveOCRProvider(env);return json({version:APP_VERSION,provider,configured:ocrConfigured(env,provider)});}
  if(request.method!=='POST')return json({error:'POST required'},405);
  if(Number(request.headers.get('content-length')||0)>40000)return json({error:'Request too large'},413);
  try{let b;try{b=await request.json();}catch{throw failure('অনুরোধের তথ্য গ্রহণযোগ্য নয়।','INVALID_INPUT',{status:400});}if(!b||!Object.hasOwn(SOURCES,b.source))return json({error:'সঠিক উৎস নির্বাচন করুন।',code:'INVALID_INPUT'},400);
@@ -116,13 +149,13 @@ async function api(request,env,path){
  }
  if(path==='/api/read-captcha'){
  const session=await open(b.token,env,request);if(session.source!==b.source)throw failure('ছবির উৎস মেলেনি। নতুন ছবি নিন।','SESSION_EXPIRED',{status:409,retryable:true,needsNewCaptcha:true});
- const provider=(env.OCR_PROVIDER|| (env.OCR_SPACE_API_KEY?.trim()?'ocr-space':env.OPENAI_API_KEY?.trim()?'openai':'browser')).trim();
- if(!['ocr-space','openai','browser'].includes(provider))throw new Error('OCR_PROVIDER হবে ocr-space, openai অথবা browser।');
- if(provider==='browser'||(provider==='ocr-space'&&!env.OCR_SPACE_API_KEY?.trim())||(provider==='openai'&&!env.OPENAI_API_KEY?.trim()))return json({error:'সার্ভার OCR চালাতে OCR_SPACE_API_KEY সেট করুন।',code:'AI_NOT_CONFIGURED'},503);
+ const provider=resolveOCRProvider(env);
+ if(!['gemini','ocr-space','openai','browser'].includes(provider))throw new GeminiError('OCR_SETTINGS_INVALID',false);
+ if(!ocrConfigured(env,provider))return json({error:'ছবির লেখাটি নিজে লিখে মিলিয়ে নিন।',code:'AI_NOT_CONFIGURED'},503);
  const match=String(b.image||'').match(/^data:image\/(?:png|jpeg|gif|webp);base64,([A-Za-z0-9+/]+={0,2})$/);
  if(!match||b.image.length>32000)return json({error:'ক্যাপচা ছবিটি গ্রহণযোগ্য নয়।'},400);
  const bytes=Uint8Array.from(atob(match[1]),c=>c.charCodeAt(0));if(await imageHash(bytes)!==session.captchaHash)return json({error:'ক্যাপচা সেশনের ছবি মেলেনি।'},400);
- return json(await (provider==='ocr-space'?readWithOCRSpace(b.image,b.source,env):readWithAI(b.image,b.source,env)));
+ return json(await readCaptcha(b.image,b.source,env,provider,budget));
  }
  if(path==='/api/check-status'){
  if(!/^BGD[A-Z0-9]{7,25}$/.test(String(b.applicationId||''))||! /^[A-Z0-9]{5,20}$/.test(String(b.passportNo||'')))throw failure('আবেদন ও পাসপোর্ট নম্বর ঠিক করে লিখুন।','INVALID_INPUT',{status:400});if(!/^[\w -]{1,32}$/.test(String(b.captcha||'')))throw failure('ছবির লেখাটি পূরণ করুন।','CAPTCHA_REQUIRED',{status:400});
@@ -132,7 +165,7 @@ async function api(request,env,path){
  const html=await fetched.response.text();return json({result:interpret(html,b.source)});
  }return json({error:'Not found'},404);
  }catch(e){
-  if(e instanceof OCRSpaceError)return json({error:'ছবির লেখাটি নিজে লিখে মিলিয়ে নিন।',code:e.code,retryable:e.retryable,verified:false},503);
+  if(e instanceof OCRSpaceError||e instanceof GeminiError)return json({error:'ছবির লেখাটি নিজে লিখে মিলিয়ে নিন।',code:e.code,retryable:e.retryable,verified:false,...(e.fallbackAttempted?{requestedProvider:e.requestedProvider,fallbackAttempted:true,fallbackReason:e.fallbackReason}:{})},503);
   const problem=e instanceof TrackerError?e:/(?:TimeoutError|AbortError)/.test(e.name)?failure('মূল সাইট সময়মতো সাড়া দেয়নি। কিছুক্ষণ পরে আবার চেষ্টা করুন।','SOURCE_TIMEOUT',{status:504,retryable:true}):failure(path==='/api/read-captcha'?'ছবির লেখাটি নিজে লিখে মিলিয়ে নিন।':'এখন ফলাফল আনা যায়নি। কিছুক্ষণ পরে আবার চেষ্টা করুন।',path==='/api/read-captcha'?'OCR_UNAVAILABLE':'INTERNAL_ERROR',{status:503,retryable:true});
   return json({error:problem.message,code:problem.code,retryable:problem.retryable,needsNewCaptcha:problem.needsNewCaptcha,verified:false},problem.status);
  }

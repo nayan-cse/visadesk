@@ -15,4 +15,4 @@ createServer(async(req,res)=>{
   res.writeHead(response.status,Object.fromEntries(response.headers));
   res.end(Buffer.from(await response.arrayBuffer()));
  }catch{res.writeHead(500);res.end('Server error');}
-}).listen(port,'127.0.0.1',()=>console.log(`VisaDesk: http://localhost:${port} — OCR.space key: ${env.OCR_SPACE_API_KEY?.trim()?'SET':'MISSING (npm run configure-ocr)'}`));
+}).listen(port,'127.0.0.1',()=>console.log(`VisaDesk: http://localhost:${port} — OCR.space key: ${env.OCR_SPACE_API_KEY?.trim()?'SET':'NOT SET'} — Gemini key: ${env.GEMINI_API_KEY?.trim()?'SET':'NOT SET'}`));

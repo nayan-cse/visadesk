@@ -1,6 +1,6 @@
 # Vercel-এ VisaDesk ডেপ্লয়
 
-আগের production আপডেট করছেন? এই ZIP-এর **পুরো project**, বিশেষ করে নতুন `api/track.js`, দিন। Existing environment variables রাখুন এবং নতুন Production deployment করুন। চাইলে `/api/config`-এ `version: "1.1.3"` দেখে নতুন backend যাচাই করুন; ট্র্যাকার চালাতে এই চেক লাগে না। বিস্তারিত `PRODUCTION_FIXES.md`-তে আছে।
+আগের production আপডেট করছেন? এই ZIP-এর **পুরো project**, বিশেষ করে `api/track.js`, `src/gemini.js` এবং নতুন `src/ocr-config.js`, দিন। Existing environment variables রাখুন এবং নতুন Production deployment করুন। চাইলে `/api/config`-এ `version: "1.1.5"` দেখে নতুন backend যাচাই করুন; ট্র্যাকার চালাতে এই চেক লাগে না। Gemini ব্যবহারের জন্য `GEMINI_SETUP.md`, আগের production fixes-এর জন্য `PRODUCTION_FIXES.md` পড়ুন।
 
 ## ১. ফোল্ডার প্রস্তুত
 
@@ -46,12 +46,14 @@ https://vercel.com খুলুন → Add New → Project → GitHub repository
 
 ## ৪. Environment Variables
 
+Gemini আগে, OCR.space ব্যাকআপ চাইলে `OCR_PROVIDER=auto`, `GEMINI_API_KEY=নিজের key`, `GEMINI_MODEL=gemini-3.5-flash-lite` দিন। নিচের `OCR_SPACE_API_KEY` ও `OCR_SPACE_ENGINE` রাখুন। `SESSION_ENCRYPTION_KEY` একই থাকবে। বিস্তারিত `GEMINI_SETUP.md`-তে আছে।
+
 Import পেইজের Environment Variables অংশে অথবা Project Settings → Environment Variables-এ নিচের চারটি variable দিন। Production এবং Preview নির্বাচন করুন।
 
 | Name | Value |
 |---|---|
 | SESSION_ENCRYPTION_KEY | আপনার local `.env.local`-এ এই নামের `=`-এর পরের পুরো মান |
-| OCR_PROVIDER | ocr-space |
+| OCR_PROVIDER | auto |
 | OCR_SPACE_API_KEY | ইমেইলে পাওয়া নিজের OCR key |
 | OCR_SPACE_ENGINE | 2 |
 

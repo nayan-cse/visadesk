@@ -1,5 +1,7 @@
 # OCR.space — আপনার জন্য সেটআপ
 
+**Gemini আগে এবং OCR.space ব্যাকআপ চাইলে** `GEMINI_SETUP.md` পড়ুন। বর্তমান v1.1.5-তে দুইটি key রাখা যায়। `npm run configure-gemini` ও `npm run configure-ocr` দুটোই চালালে দুইটি key গোপনে সেট হবে এবং Gemini আগে চেষ্টা করবে। পুরোনো session ও login settings রাখা হয়। নিচের OCR.space-only setup-ও ব্যবহার করা যায়।
+
 ## ১. ফোল্ডার খুলুন
 
 নতুন ZIP extract করুন। `visadesk-vercel` ফোল্ডারে Terminal / Git Bash খুলুন। Node.js 22+ লাগবে।
@@ -13,7 +15,7 @@ npm run configure-ocr
 
 Terminal “Paste ONLY your OCR.space API key” বললে ইমেইলের **শুধু key** paste করে Enter চাপুন। লেখা দেখা না গেলেও input নেওয়া হচ্ছে। পুরো email বা key-এর Markdown ** চিহ্ন paste করবেন না।
 
-এই কমান্ড সঠিক project ফোল্ডারের `.env.local` তৈরি/আপডেট করবে। Key গোপন থাকবে, provider OCR.space এবং engine 2 সেট হবে। আগে থেকে থাকা session key রাখা হবে।
+এই কমান্ড সঠিক project ফোল্ডারের `.env.local` তৈরি/আপডেট করবে। Key গোপন থাকবে, `OCR_PROVIDER=auto` এবং engine 2 সেট হবে। Gemini key থাকলে Gemini আগে চলবে, OCR.space হবে ব্যাকআপ। আগে থেকে থাকা session key রাখা হবে।
 
 ## ৩. Settings পরীক্ষা করুন
 
@@ -46,7 +48,7 @@ BGD ও passport number লিখে “ক্যাপচা প্রস্ত
 | Name | Value |
 |---|---|
 | SESSION_ENCRYPTION_KEY | আপনার `.env.local`-এ তৈরি হওয়া মান |
-| OCR_PROVIDER | ocr-space |
+| OCR_PROVIDER | auto |
 | OCR_SPACE_API_KEY | ইমেইলে পাওয়া আপনার আসল key |
 | OCR_SPACE_ENGINE | 2 |
 
