@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="নম্বর দিন, ক্যাপচা মিলিয়ে নিন, ভিসা ও পাসপোর্টের ফলাফল দেখুন।"><title>VisaDesk — ভিসা ও পাসপোর্ট ট্র্যাকার</title><style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Sora:wght@600;700&display=swap');
 :root{--bg:#eff4f6;--surface:#ffffff;--subtle:#f6f9fb;--ink:#1d3246;--muted:#5d7388;--line:#dfe8ef;--accent:#087f8c;--accent-soft:#e3f4f5;--green:#147652;--green-soft:#eaf7f0;--amber:#966410;--amber-soft:#fff7e5;--red:#b54248;--red-soft:#fff0ef;--shadow:0 12px 36px #183a5210;--focus:#46aeb8;--radius:20px}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 5% 0,#dbecee,transparent 48%),var(--bg);color:var(--ink);font:15px 'Noto Sans Bengali','DM Sans',sans-serif;transition:background-color .2s,color .2s}
 body[data-theme="dark"]{color-scheme:dark;--bg:#0c1420;--surface:#142132;--subtle:#192a3d;--ink:#eef5fc;--muted:#a8bacd;--line:#2a3d52;--accent:#6bd5d5;--accent-soft:#153b45;--green:#7bdbae;--green-soft:#173c33;--amber:#f1ca7b;--amber-soft:#3a3020;--red:#ffa2a5;--red-soft:#3e242d;--shadow:0 12px 36px #00000025;--focus:#64c7d2;background:radial-gradient(ellipse at 5% 0,#122e3b,transparent 48%),var(--bg)}
@@ -219,7 +219,198 @@ input:focus{background:var(--surface)!important;box-shadow:0 0 0 4px var(--accen
 @media(max-width:650px){.result-window .result-main{gap:13px;align-items:flex-start}.status-artwork{width:62px;height:62px;flex-basis:62px;border-radius:19px}.status-artwork svg{width:53px;height:53px}.result-window .result-main h3{font-size:22px}}
 @media(max-width:380px){.result-window .result-main{gap:10px}.status-artwork{width:53px;height:53px;flex-basis:53px;border-radius:16px}.status-artwork svg{width:46px;height:46px}}
 @media(prefers-reduced-motion:reduce){.status-artwork *,.delivery-step-card{animation:none!important;transition:none!important}.status-halo{display:none}.status-check{stroke-dashoffset:0}}
-</style></head><body data-theme="dark"><main class="shell" id="app" data-phase="entry"><header class="header"><a class="brand" href="/" aria-label="VisaDesk"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span>Visa<small>Desk</small></a><div class="header-actions"><span class="header-note">ভিসা ও পাসপোর্ট ট্র্যাকার</span><button type="button" class="theme-toggle" id="themeToggle" aria-pressed="true" aria-label="দিনের মোড চালু করুন"><span id="themeIcon" aria-hidden="true">☀</span><span id="themeLabel">দিনের মোড</span></button></div></header><section class="hero" id="introHero"><span class="eyebrow">VISA & PASSPORT TRACKING</span></section><div class="flow-shell"><nav id="flowSteps" class="stepper" aria-label="চেক করার ধাপ"><div class="flow-step active" id="step-entry"><b>১</b> আবেদনের তথ্য</div><div class="flow-step" id="step-review"><b>২</b> ক্যাপচা যাচাই</div><div class="flow-step" id="step-result"><b>৩</b> ফলাফল</div></nav><section class="operation-panel hidden" id="operationPanel" aria-live="polite" aria-label="চেক করার অগ্রগতি"><div class="operation-icon" id="operationIcon" aria-hidden="true">↻</div><div class="operation-content"><div class="operation-top"><strong id="operationTitle"></strong><span id="operationCount"></span></div><p id="operationMessage"></p><div class="operation-track" id="operationTrack" role="progressbar" aria-label="সম্পন্ন চেকের কাজ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="operationFill" style="width:0%"></span></div></div></section><section id="entryStage" class="card form-card"><div class="panel-heading"><span class="panel-icon" aria-hidden="true">▤</span><div><h2>আবেদনের তথ্য দিন</h2><p>আবেদনপত্র ও পাসপোর্ট অনুযায়ী নম্বর লিখুন।</p></div></div><form id="trackingForm"><div class="fields-wrap" id="fieldsWrap"><div class="fields"><div class="field"><label for="applicationId">BGD / আবেদন নম্বর</label><input id="applicationId" aria-controls="recentSuggestions" aria-expanded="false" type="text" required pattern="BGD[A-Za-z0-9]{7,25}" maxlength="28" placeholder="BGD দিয়ে শুরু হওয়া নম্বর" autocomplete="off" spellcheck="false" autocapitalize="characters" autocorrect="off"></div><div class="field"><label for="passportNo">পাসপোর্ট নম্বর</label><div class="input-wrap"><input id="passportNo" aria-controls="recentSuggestions" aria-expanded="false" type="text" required pattern="[A-Za-z0-9]{5,20}" maxlength="20" placeholder="পাসপোর্টে থাকা নম্বর" autocomplete="off" autocapitalize="characters" autocorrect="off"><button class="eye" type="button" id="togglePassport" hidden tabindex="-1" aria-label="পাসপোর্ট নম্বর দেখান">দেখুন</button></div></div></div><section id="recentSuggestions" class="suggestion-panel hidden" aria-label="আগে চেক করা নম্বর"><div class="suggestion-heading"><strong>আগে চেক করা নম্বর</strong><button id="clearRecents" class="clear-recents" type="button">সব মুছুন</button></div><div id="recentSuggestionsList" class="suggestion-list"></div><p class="suggestion-note">এই ব্রাউজারে রাখা সর্বশেষ ৮টি নম্বরের জোড়া</p></section></div><div class="actions"><button type="button" class="btn secondary" id="newApplication">ঘর খালি করুন</button><button class="btn primary" type="submit" id="checkBtn">ক্যাপচা প্রস্তুত করুন</button></div><p class="status-line" id="formFeedback" role="status"></p></form></section><section id="reviewStage" class="card review-card hidden"><div class="panel-heading"><span class="panel-icon" aria-hidden="true">✓</span><div><h2>ক্যাপচা ঠিক আছে কি না দেখুন</h2><p>ছবির সঙ্গে লেখাটি মিলিয়ে নিন। ভুল থাকলে নিচের ঘরে ঠিক করুন।</p></div></div><div class="review-summary"><span>BGD: <strong id="reviewApplication"></strong></span><span>Passport: <strong id="reviewPassport"></strong></span><button type="button" class="edit" id="editDetails">তথ্য বদলান</button></div><form id="captchaForm"><div id="captchaPanel"><div class="captcha-sources" id="captchaSources"></div></div><p class="review-tip">দুটি ছবির লেখা যাচাই করা হলে ফলাফল দেখুন।</p><div class="actions"><button class="btn primary" type="submit" id="confirmBtn">ঠিক আছে, ফলাফল দেখুন</button></div><p class="status-line" id="reviewFeedback" role="status"></p></form></section><section id="resultStage" class="result-window hidden" aria-labelledby="resultHeading"><div class="result-intro"><div><h2 id="resultHeading">আপনার আবেদনের ফলাফল</h2><p>ভিসার সিদ্ধান্ত ও পাসপোর্টের অগ্রগতি</p></div><div class="result-actions"><button type="button" class="btn secondary" id="resultNewApplication">BGD / পাসপোর্ট বদলান</button><button type="button" class="btn primary" id="saveResults" disabled>↓ ছবি সেভ করুন</button></div></div><section class="results" id="resultsSection" aria-label="চেকের ফলাফল" aria-live="polite"><article class="card result-card" id="visaResult"></article><article class="card result-card" id="ivacResult"></article></section><p id="saveFeedback" class="status-line" role="status"></p><div class="retry-row"><button class="btn secondary hidden" id="retryCaptcha" type="button">আবার চেক করুন</button></div></section></div><footer class="footer">VisaDesk · সরকারি ওয়েবসাইট নয়</footer></main><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js" defer></script><script>
+
+/* ===== Modern UI layer: aurora, glass, refined motion ===== */
+:root{--a1:#5b5bf0;--a2:#14a8c4;--a3:#b05bf0;--ease:cubic-bezier(.16,1,.3,1);--radius:26px}
+body{--glass:color-mix(in srgb,var(--surface) 76%,transparent);font-feature-settings:"ss01";-webkit-font-smoothing:antialiased}
+body[data-theme="dark"]{--a1:#6b6bff;--a2:#22c3e0;--a3:#a45bf0}
+body::before{inset:-15%;background:radial-gradient(38% 34% at 15% 12%,color-mix(in srgb,var(--a1) 28%,transparent),transparent 70%),radial-gradient(34% 32% at 88% 22%,color-mix(in srgb,var(--a2) 24%,transparent),transparent 70%),radial-gradient(40% 36% at 55% 100%,color-mix(in srgb,var(--a3) 20%,transparent),transparent 70%);animation:aurora 24s ease-in-out infinite alternate;will-change:transform}
+body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.55;background:radial-gradient(circle at 1px 1px,color-mix(in srgb,var(--ink) 16%,transparent) 1px,transparent 1.6px) 0 0/28px 28px;-webkit-mask:linear-gradient(#000,transparent 65%);mask:linear-gradient(#000,transparent 65%)}
+@keyframes aurora{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(3%,2%,0) scale(1.08) rotate(2deg)}100%{transform:translate3d(-3%,4%,0) scale(1.04) rotate(-2deg)}}
+
+/* Page-load sequence: one orchestrated entrance */
+@keyframes enter-down{from{opacity:0;transform:translateY(-14px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes enter-up{from{opacity:0;transform:translateY(14px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes pop{from{opacity:0;transform:translateY(22px) scale(.975)}to{opacity:1;transform:none}}
+.header{animation:enter-down .8s var(--ease) both}
+.eyebrow{animation:enter-up .8s .12s var(--ease) both}
+.stepper{animation:enter-up .8s .2s var(--ease) both}
+.card,.result-window{animation:pop .75s var(--ease) both}
+#entryStage{animation-delay:.28s}
+.result-window .result-card:nth-child(1){animation-delay:.12s}.result-window .result-card:nth-child(2){animation-delay:.24s}
+
+/* Glass surfaces */
+.header{background:var(--glass);-webkit-backdrop-filter:blur(20px) saturate(1.5);backdrop-filter:blur(20px) saturate(1.5);border-radius:22px;box-shadow:0 1px 0 #ffffff22 inset,0 10px 30px -14px #1b255233}
+.brand{font-family:'Sora','DM Sans',sans-serif;font-weight:700;letter-spacing:-1px}
+.brand-icon{position:relative;overflow:hidden;border-radius:15px}
+.brand-icon:after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,#ffffff66 50%,transparent 65%);transform:translateX(-130%);animation:sweep 6s 1.2s ease-in-out infinite}
+@keyframes sweep{0%,60%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+.theme-toggle{background:var(--glass);transition:background .25s,transform .25s var(--ease),border-color .25s}
+.theme-toggle:hover{transform:translateY(-1px);border-color:var(--focus)}
+.theme-toggle span:first-child{transition:transform .5s var(--ease)}.theme-toggle:hover span:first-child{transform:rotate(40deg) scale(1.15)}
+.form-card,.review-card,.result-window,.operation-panel{background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4)}
+.form-card,.review-card{border-color:transparent}
+.form-card:after,.review-card:after{content:'';position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;background:linear-gradient(140deg,color-mix(in srgb,var(--a1) 55%,transparent),transparent 36%,transparent 64%,color-mix(in srgb,var(--a2) 55%,transparent));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.result-window{border-radius:30px}
+body[data-theme="dark"] .form-card,body[data-theme="dark"] .review-card,body[data-theme="dark"] .result-window{box-shadow:0 30px 80px -30px #000c,0 0 80px -40px var(--a1)}
+
+/* Hero badge with live dot */
+.eyebrow{background:var(--glass);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid var(--line);color:var(--ink)}
+.eyebrow:before{position:relative;background:#22c58b;box-shadow:0 0 0 0 #22c58b88;animation:live 2s ease-out infinite}
+@keyframes live{0%{box-shadow:0 0 0 0 #22c58b88}80%,100%{box-shadow:0 0 0 9px #22c58b00}}
+
+/* Stepper */
+.stepper{width:fit-content;max-width:100%;margin:0 auto 26px;padding:7px 12px;gap:36px;background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow)}
+.flow-step{padding:4px 8px 4px 4px;border-radius:999px;transition:color .35s}
+.flow-step b{transition:background .35s,border-color .35s,color .35s,transform .45s var(--ease)}
+.flow-step:not(:last-child):after{right:-32px;width:28px;height:2px;border-radius:2px;transition:background .5s}
+.flow-step.complete:not(:last-child):after{background:var(--grad)}
+.flow-step.active b{transform:scale(1.08);animation:ring 2.4s ease-out infinite}
+@keyframes ring{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 50%,transparent)}70%,100%{box-shadow:0 0 0 10px transparent}}
+
+/* Inputs & buttons */
+.field input{background:color-mix(in srgb,var(--subtle) 80%,transparent);transition:border-color .25s,box-shadow .3s,background .25s,transform .3s var(--ease)}
+.field input:focus,.captcha-area input:focus{transform:translateY(-1px);background:var(--surface)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent),0 14px 28px -14px color-mix(in srgb,var(--accent) 60%,transparent)!important}
+.field label{transition:color .25s}.field:focus-within label{color:var(--accent)}
+.btn{border-radius:14px;transition:transform .3s var(--ease),box-shadow .3s,background-position .6s var(--ease),border-color .25s}
+.btn.primary{background-size:180% 100%;background-position:0 0;box-shadow:0 12px 28px -8px color-mix(in srgb,var(--a1) 65%,transparent),0 1px 0 #ffffff44 inset}
+.btn.primary:hover:not(:disabled){background-position:100% 0;transform:translateY(-2px);box-shadow:0 18px 34px -10px color-mix(in srgb,var(--a1) 75%,transparent),0 1px 0 #ffffff44 inset}
+.btn.secondary:hover:not(:disabled){border-color:var(--focus);background:var(--accent-soft)}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn:disabled{position:relative}
+.panel-icon{animation:bob 5s ease-in-out infinite}
+@keyframes bob{50%{translate:0 -3px}}
+
+/* Captcha, progress, spinner */
+.source-box{background:color-mix(in srgb,var(--subtle) 75%,transparent);transition:border-color .25s,transform .35s var(--ease),box-shadow .35s}
+.source-box:hover{transform:translateY(-3px);box-shadow:0 18px 34px -18px color-mix(in srgb,var(--a1) 55%,transparent)}
+.spinner{border:0;background:conic-gradient(from 0deg,transparent 0 15%,var(--accent) 100%);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px))}
+.operation-track span,.progress-track>span{position:relative;overflow:hidden}
+.progress-track>span:after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,#ffffff55 50%,transparent 70%);transform:translateX(-100%);animation:shimmer 2.4s 1s ease-in-out infinite}
+.progress-track>span{background:linear-gradient(90deg,#1093a3,#22c58b)}
+
+/* Results */
+@keyframes slide-in{from{opacity:0;transform:translateX(-14px) scale(.98)}to{opacity:1;transform:none}}
+.result-window .result-main{animation:slide-in .8s .2s var(--ease) both;box-shadow:0 14px 30px -22px color-mix(in srgb,var(--a1) 60%,transparent)}
+.status-artwork{animation:bob 5s ease-in-out infinite}
+.result-window .result-intro{background:linear-gradient(120deg,color-mix(in srgb,var(--accent-soft) 85%,transparent),transparent 75%)}
+.result-window .result-title:before{animation:live 2.4s ease-out infinite}
+.delivery-percentage b{font-family:'Sora','DM Sans',sans-serif;letter-spacing:-2px}
+@keyframes mile-pop{from{opacity:0;transform:scale(.4)}60%{transform:scale(1.15)}to{opacity:1;transform:none}}
+.delivery-milestones li b{animation:mile-pop .6s var(--ease) both}
+.delivery-milestones li:nth-child(2) b{animation-delay:.12s}.delivery-milestones li:nth-child(3) b{animation-delay:.24s}.delivery-milestones li:nth-child(4) b{animation-delay:.36s}
+.delivery-milestones .current b:after{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--green);opacity:0;animation:ping 2.4s 1s ease-out infinite}
+.delivery-milestones .current.pending b:after{border-color:var(--amber)}
+@keyframes ping{0%{transform:scale(.8);opacity:.7}100%{transform:scale(1.5);opacity:0}}
+@media(hover:hover){.delivery-step-card{transition:transform .35s var(--ease),box-shadow .35s,border-color .25s}.delivery-step-card:hover{transform:translateY(-3px);box-shadow:0 16px 30px -18px color-mix(in srgb,var(--a1) 55%,transparent)}}
+.footer{opacity:.8}
+
+/* Header gains depth on scroll (progressive enhancement) */
+@keyframes header-depth{to{box-shadow:0 1px 0 #ffffff22 inset,0 18px 40px -14px #1b255255}}
+@supports(animation-timeline:scroll()){.header{animation:enter-down .8s var(--ease) both,header-depth linear both;animation-timeline:auto,scroll();animation-range:normal,0 140px}}
+
+@media(max-width:650px){
+.stepper{gap:22px;padding:6px 10px}.flow-step:not(:last-child):after{right:-20px;width:16px}
+.flow-step:not(.active){font-size:0;gap:0;padding-right:4px}.flow-step:not(.active) b{font-size:12px}
+.result-window{border-radius:24px}.btn.primary:hover:not(:disabled){transform:none}}
+@media(prefers-reduced-motion:reduce){body::before,.header,.eyebrow,.stepper,.card,.result-window,.panel-icon,.status-artwork,.brand-icon:after,.eyebrow:before,.flow-step.active b,.result-window .result-main,.delivery-milestones li b,.delivery-milestones .current b:after,.progress-track>span:after,.result-window .result-title:before{animation:none!important}.source-box:hover,.delivery-step-card:hover{transform:none}}
+
+/* ===== UI v3: orbs, spotlight, ripple, polish ===== */
+:root{--spring:cubic-bezier(.34,1.56,.64,1)}
+html{scroll-behavior:smooth}
+::selection{background:color-mix(in srgb,var(--accent) 30%,transparent)}
+::-webkit-scrollbar{width:12px}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--accent) 45%,transparent);border-radius:10px;border:3px solid transparent;background-clip:padding-box}
+.orb{position:fixed;z-index:-1;border-radius:50%;filter:blur(80px);opacity:.28;pointer-events:none;animation:orb-float 20s ease-in-out infinite alternate}
+.orb.o1{width:360px;height:360px;left:-100px;top:18%;background:var(--a1)}
+.orb.o2{width:320px;height:320px;right:-80px;top:52%;background:var(--a2);animation-delay:-7s}
+.orb.o3{width:260px;height:260px;left:40%;top:-90px;background:var(--a3);animation-delay:-12s}
+@keyframes orb-float{to{transform:translate3d(50px,-70px,0) scale(1.18)}}
+@media(hover:hover){.form-card,.review-card,.source-box,.delivery-step-card{background-image:radial-gradient(420px circle at var(--mx,50%) var(--my,0%),color-mix(in srgb,var(--a1) 13%,transparent),transparent 62%)}}
+.stepper .flow-step{animation:enter-up .7s var(--ease) both}
+.stepper .flow-step:nth-child(2){animation-delay:.08s}.stepper .flow-step:nth-child(3){animation-delay:.16s}
+.btn{-webkit-tap-highlight-color:transparent}
+.btn:active:not(:disabled){transition-duration:.12s}
+.btn.primary:hover:not(:disabled){transition-timing-function:var(--spring)}
+.ripple{position:absolute;border-radius:50%;pointer-events:none;background:#ffffff59;transform:scale(0);animation:ripple .65s ease-out forwards}
+@keyframes ripple{to{transform:scale(1);opacity:0}}
+.btn.primary:disabled{background-size:300% 100%;animation:btn-busy 1.4s linear infinite}
+@keyframes btn-busy{to{background-position:-300% 0}}
+.result-window .result-card:nth-child(2){animation-delay:.22s}
+.delivery-percentage b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.delivery-percentage b span{color:inherit}
+.confetti{position:fixed;top:-12px;width:9px;height:14px;border-radius:2px;pointer-events:none;z-index:999;animation:confetti-fall linear forwards}
+@keyframes confetti-fall{to{transform:translate3d(var(--dx),105vh,0) rotate(var(--rot));opacity:.9}}
+@media(prefers-reduced-motion:reduce){.orb,.ripple,.confetti,.stepper .flow-step,.btn.primary:disabled{animation:none!important}.confetti,.orb{display:none}}
+
+/* ===== UI v4: captcha page, result, responsive ===== */
+#entryStage,#reviewStage,#resultStage{scroll-margin-top:96px}
+.source-box{position:relative;overflow:hidden;padding:16px}
+.source-title{margin-bottom:12px}
+.source-title strong:after{content:'';display:inline-block;margin-left:8px;padding:2px 9px;border-radius:99px;font:600 11px 'Noto Sans Bengali',sans-serif;vertical-align:middle;transition:all .3s}
+.source-box[data-state=reading] .source-title strong:after{content:'পড়া হচ্ছে…';background:var(--accent-soft);color:var(--accent)}
+.source-box[data-state=ready] .source-title strong:after{content:'✓ প্রস্তুত';background:var(--green-soft);color:var(--green)}
+.source-box[data-state=check] .source-title strong:after{content:'মিলিয়ে নিন';background:var(--amber-soft);color:var(--amber)}
+.source-box[data-state=typed] .source-title strong:after{content:'লেখা আছে';background:var(--accent-soft);color:var(--accent)}
+.source-box[data-state=error] .source-title strong:after{content:'সমস্যা';background:var(--red-soft);color:var(--red)}
+.source-box[data-state=expired] .source-title strong:after{content:'মেয়াদ শেষ';background:var(--red-soft);color:var(--red)}
+.source-box[data-state=ready]{border-color:color-mix(in srgb,var(--green) 55%,var(--line))}
+.source-box[data-state=check],.source-box[data-state=expired]{border-color:color-mix(in srgb,var(--amber) 55%,var(--line))}
+.source-box[data-state=expired] .refresh{animation:nudge 1.2s ease-in-out infinite}
+@keyframes nudge{50%{transform:scale(1.12);background:var(--accent-soft)}}
+.captcha-picture{height:92px;margin-bottom:12px;border-radius:12px;box-shadow:inset 0 0 0 1px #00000008,0 6px 16px -10px #0004}
+.captcha-picture img{transition:transform .45s var(--ease)}
+.captcha-picture:hover img{transform:scale(1.15)}
+.captcha-area input{text-align:center;transition:border-color .25s,box-shadow .3s}
+.captcha-area label{font-size:11px;margin-bottom:6px}
+.source-error{font-size:11.5px;line-height:1.7;margin-top:8px;min-height:20px}
+.image-placeholder.skeleton{height:92px;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;border-style:solid}
+.image-placeholder small{font-size:11px;color:var(--muted)}
+.sk-line{width:70%;height:14px;border-radius:8px;background:linear-gradient(90deg,var(--line),color-mix(in srgb,var(--line) 35%,var(--surface)),var(--line));background-size:200% 100%;animation:skel 1.3s linear infinite}
+.sk-line.short{width:45%}
+@keyframes skel{to{background-position:-200% 0}}
+.expiry{display:flex;align-items:center;gap:10px;margin-top:10px;font:500 11px 'DM Sans','Noto Sans Bengali',sans-serif;color:var(--muted)}
+.expiry i{flex:1;height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+.expiry b{display:block;height:100%;width:calc(var(--left,1)*100%);background:var(--grad);transition:width 1s linear}
+.expiry.low{color:var(--amber)}.expiry.low b{background:var(--amber)}
+.expiry.out{color:var(--red)}
+.review-summary{padding:10px 14px;margin-bottom:16px;border-radius:14px}
+.review-summary strong{font-weight:700;color:var(--accent)}
+.operation-panel{padding:12px 16px;margin-bottom:14px}
+.operation-content p{margin-bottom:7px}
+#reviewStage .panel-heading{margin-bottom:16px}
+#toast{position:fixed;left:50%;bottom:26px;z-index:1000;transform:translate(-50%,24px);opacity:0;pointer-events:none;padding:11px 18px;border-radius:14px;background:var(--ink);color:var(--bg);font-size:13px;box-shadow:0 14px 34px -10px #0007;transition:all .4s var(--ease)}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.result-banner{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:20px 28px 4px}
+.result-banner:empty{display:none}
+.tile{--c:var(--green);display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:20px;border:1px solid color-mix(in srgb,var(--c) 28%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--c) 11%,var(--surface)),var(--surface));animation:pop .7s var(--ease) both;transition:transform .35s var(--ease),box-shadow .35s}
+.tile:nth-child(2){animation-delay:.1s}
+.tile:hover{transform:translateY(-3px);box-shadow:0 18px 30px -18px var(--c)}
+.tile.tone-warn{--c:var(--amber)}.tile.tone-bad{--c:var(--red)}
+.tile-icon{width:52px;height:52px;flex:0 0 52px;display:grid;place-items:center;border-radius:16px;background:var(--c);color:#fff;font:700 24px 'DM Sans',sans-serif;box-shadow:0 8px 18px -6px var(--c)}
+.tile small{display:block;font-size:11px;color:var(--muted);letter-spacing:.4px}
+.tile strong{display:block;font-size:16px;line-height:1.5;color:var(--ink)}
+@property --p{syntax:'<number>';inherits:false;initial-value:0}
+.ring{width:56px;height:56px;flex:0 0 56px;border-radius:50%;display:grid;place-items:center;position:relative;background:conic-gradient(var(--c) calc(var(--p)*1%),var(--line) 0);transition:--p 1.3s var(--ease)}
+.ring:before{content:'';position:absolute;inset:6px;border-radius:50%;background:var(--surface)}
+.ring span{position:relative;font:700 13px 'DM Sans',sans-serif;color:var(--c)}
+.result-window .result-main{position:relative;overflow:hidden}
+.result-window .result-main:after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,#ffffff2e 50%,transparent 65%);transform:translateX(-120%);animation:sweep 1.6s .9s var(--ease) 1 both;pointer-events:none}
+.result-window .status-summary{padding:14px 16px;border-radius:16px;background:var(--subtle);border:1px solid var(--line)}
+.result-window .result-meta{padding:10px 14px;border:1px solid var(--line);border-radius:14px;background:var(--subtle)}
+.delivery-milestones .done:before{transform-origin:left;animation:line-grow .8s var(--ease) both}
+@keyframes line-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.delivery-step-card.done{background:linear-gradient(135deg,var(--green-soft),var(--subtle))}
+.result-actions .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+@media(max-width:650px){
+.result-banner{grid-template-columns:1fr;padding:16px 20px 0}
+.review-card .actions{position:sticky;bottom:10px;z-index:6;margin:16px -8px 0;padding:10px;border-radius:18px;background:var(--glass);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid var(--line)}
+.captcha-sources{gap:12px}
+.result-window .result-actions{flex-wrap:wrap}
+.result-window .result-actions .btn{flex:1 1 45%}
+}
+@media(prefers-reduced-motion:reduce){.sk-line,.tile,.result-window .result-main:after,.delivery-milestones .done:before,.source-box .refresh{animation:none!important}.ring{transition:none}}
+</style></head><body data-theme="dark"><main class="shell" id="app" data-phase="entry"><header class="header"><a class="brand" href="/" aria-label="VisaDesk"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span>Visa<small>Desk</small></a><div class="header-actions"><span class="header-note">ভিসা ও পাসপোর্ট ট্র্যাকার</span><button type="button" class="theme-toggle" id="themeToggle" aria-pressed="true" aria-label="দিনের মোড চালু করুন"><span id="themeIcon" aria-hidden="true">☀</span><span id="themeLabel">দিনের মোড</span></button></div></header><section class="hero" id="introHero"><span class="eyebrow">VISA & PASSPORT TRACKING</span></section><div class="flow-shell"><nav id="flowSteps" class="stepper" aria-label="চেক করার ধাপ"><div class="flow-step active" id="step-entry"><b>১</b> আবেদনের তথ্য</div><div class="flow-step" id="step-review"><b>২</b> ক্যাপচা যাচাই</div><div class="flow-step" id="step-result"><b>৩</b> ফলাফল</div></nav><section class="operation-panel hidden" id="operationPanel" aria-live="polite" aria-label="চেক করার অগ্রগতি"><div class="operation-icon" id="operationIcon" aria-hidden="true">↻</div><div class="operation-content"><div class="operation-top"><strong id="operationTitle"></strong><span id="operationCount"></span></div><p id="operationMessage"></p><div class="operation-track" id="operationTrack" role="progressbar" aria-label="সম্পন্ন চেকের কাজ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="operationFill" style="width:0%"></span></div></div></section><section id="entryStage" class="card form-card"><div class="panel-heading"><span class="panel-icon" aria-hidden="true">▤</span><div><h2>আবেদনের তথ্য দিন</h2><p>আবেদনপত্র ও পাসপোর্ট অনুযায়ী নম্বর লিখুন।</p></div></div><form id="trackingForm"><div class="fields-wrap" id="fieldsWrap"><div class="fields"><div class="field"><label for="applicationId">BGD / আবেদন নম্বর</label><input id="applicationId" aria-controls="recentSuggestions" aria-expanded="false" type="text" required pattern="BGD[A-Za-z0-9]{7,25}" maxlength="28" placeholder="BGD দিয়ে শুরু হওয়া নম্বর" autocomplete="off" spellcheck="false" autocapitalize="characters" autocorrect="off"></div><div class="field"><label for="passportNo">পাসপোর্ট নম্বর</label><div class="input-wrap"><input id="passportNo" aria-controls="recentSuggestions" aria-expanded="false" type="text" required pattern="[A-Za-z0-9]{5,20}" maxlength="20" placeholder="পাসপোর্টে থাকা নম্বর" autocomplete="off" autocapitalize="characters" autocorrect="off"><button class="eye" type="button" id="togglePassport" hidden tabindex="-1" aria-label="পাসপোর্ট নম্বর দেখান">দেখুন</button></div></div></div><section id="recentSuggestions" class="suggestion-panel hidden" aria-label="আগে চেক করা নম্বর"><div class="suggestion-heading"><strong>আগে চেক করা নম্বর</strong><button id="clearRecents" class="clear-recents" type="button">সব মুছুন</button></div><div id="recentSuggestionsList" class="suggestion-list"></div><p class="suggestion-note">এই ব্রাউজারে রাখা সর্বশেষ ৮টি নম্বরের জোড়া</p></section></div><div class="actions"><button type="button" class="btn secondary" id="newApplication">ঘর খালি করুন</button><button class="btn primary" type="submit" id="checkBtn">ক্যাপচা প্রস্তুত করুন</button></div><p class="status-line" id="formFeedback" role="status"></p></form></section><section id="reviewStage" class="card review-card hidden"><div class="panel-heading"><span class="panel-icon" aria-hidden="true">✓</span><div><h2>ক্যাপচা ঠিক আছে কি না দেখুন</h2><p>ছবির সঙ্গে লেখা মিলিয়ে নিন। ভুল হলে ঠিক করুন।</p></div></div><div class="review-summary"><span>BGD: <strong id="reviewApplication"></strong></span><span>Passport: <strong id="reviewPassport"></strong></span><button type="button" class="edit" id="editDetails">তথ্য বদলান</button></div><form id="captchaForm"><div id="captchaPanel"><div class="captcha-sources" id="captchaSources"></div></div><div class="actions"><button class="btn primary" type="submit" id="confirmBtn">ঠিক আছে, ফলাফল দেখুন</button></div><p class="status-line" id="reviewFeedback" role="status"></p></form></section><section id="resultStage" class="result-window hidden" aria-labelledby="resultHeading"><div class="result-intro"><div><h2 id="resultHeading">আপনার আবেদনের ফলাফল</h2><p>ভিসার সিদ্ধান্ত ও পাসপোর্টের অগ্রগতি</p></div><div class="result-actions"><button type="button" class="btn secondary" id="resultNewApplication">BGD / পাসপোর্ট বদলান</button><button type="button" class="btn primary" id="saveResults" disabled>↓ ছবি সেভ করুন</button></div></div><section class="results" id="resultsSection" aria-label="চেকের ফলাফল" aria-live="polite"><article class="card result-card" id="visaResult"></article><article class="card result-card" id="ivacResult"></article></section><p id="saveFeedback" class="status-line" role="status"></p><div class="retry-row"><button class="btn secondary hidden" id="retryCaptcha" type="button">আবার চেক করুন</button></div></section></div><footer class="footer">VisaDesk · সরকারি ওয়েবসাইট নয়</footer></main><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js" defer></script><script>
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sourceInfo={visa:{name:'Indian Visa Online',url:'https://indianvisaonline.gov.in/visa/StatusEnquiry'},ivac:{name:'IVAC',url:'https://www.passtrack.net/regular_passport.php'}};
 const statusMeaning={
@@ -277,7 +468,7 @@ function setCaptchaNotice(source,message,reading=false,data=null){
  notice.textContent=message;notice.classList.toggle('is-reading',reading);notice.setAttribute('aria-busy',String(reading));
  area.classList.toggle('is-reading',reading);area.setAttribute('aria-busy',String(reading));
 }
-function renderSources(){$('captchaSources').innerHTML=Object.entries(sourceInfo).map(([source,inf],i)=>'<div class="source-box"><div class="source-title"><span class="source-number">'+(i+1).toLocaleString('bn-BD')+'</span><strong>'+(source==='visa'?'ভিসার ক্যাপচা':'পাসপোর্টের ক্যাপচা')+'</strong><button type="button" class="refresh" data-prepare="'+source+'" aria-label="'+inf.name+' নতুন ক্যাপচা">↻ নতুন ছবি</button></div><div id="captcha-'+source+'" class="captcha-area"><div class="image-placeholder">ছবি আনা হচ্ছে…</div></div><div id="error-'+source+'" class="source-error" role="status"></div></div>').join('');}
+function renderSources(){$('captchaSources').innerHTML=Object.entries(sourceInfo).map(([source,inf],i)=>'<div class="source-box"><div class="source-title"><span class="source-number">'+(i+1).toLocaleString('bn-BD')+'</span><strong>'+(source==='visa'?'ভিসার ক্যাপচা':'পাসপোর্টের ক্যাপচা')+'</strong><button type="button" class="refresh" data-prepare="'+source+'" aria-label="'+inf.name+' নতুন ক্যাপচা">↻ নতুন ছবি</button></div><div id="captcha-'+source+'" class="captcha-area"><div class="image-placeholder skeleton"><span class="sk-line"></span><span class="sk-line short"></span><small>ছবি আনা হচ্ছে…</small></div></div><div id="error-'+source+'" class="source-error" role="status"></div></div>').join('');}
 async function apiRequest(path,options){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),55000);try{const action=path.slice('/api/'.length),endpoint='/api/track?action='+encodeURIComponent(action);const res=await fetch(endpoint,{...options,credentials:'same-origin',cache:'no-store',signal:controller.signal});let data;try{data=await res.json();}catch{const e=new Error('সার্ভারের উত্তর গ্রহণযোগ্য নয়।');e.status=res.status;e.code=res.status===504?'SOURCE_TIMEOUT':'SERVICE_RESPONSE_INVALID';throw e;}if(!res.ok){const e=new Error(data.error||'সংযোগ ব্যর্থ');Object.assign(e,{status:res.status,code:data.code,retryable:data.retryable,needsNewCaptcha:data.needsNewCaptcha});throw e;}return data;}finally{clearTimeout(timer);}}
 const post=(path,payload)=>apiRequest(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
 function normalizeCaptchaText(source,text){const value=String(text||'').replace(/[^a-z0-9]/gi,'');return source==='ivac'?value.toLowerCase():value;}
@@ -344,7 +535,7 @@ function setPhase(next){phase=next;closeRecentSuggestions();if(next==='entry')$(
 function setBusy(value,label){busy=value;updateSaveState();for(const id of ['trackingForm','captchaForm'])$(id).querySelectorAll('input,button').forEach(el=>el.disabled=value);$('checkBtn').textContent=value&&phase==='entry'?'প্রস্তুত হচ্ছে…':'ক্যাপচা প্রস্তুত করুন';$('confirmBtn').textContent=value&&phase==='review'?(label||'ক্যাপচাটি পড়া হচ্ছে…'):'ঠিক আছে, ফলাফল দেখুন';}
 function reviewSummary(){const d=details();$('reviewApplication').textContent=d.applicationId;$('reviewPassport').textContent=d.passportNo;}
 function enableReview(){const available=Object.keys(sessions).some(source=>!current[source]);$('confirmBtn').disabled=busy||!available;}
-async function prepareSource(source,useOCR=true){const data=await post('/api/prepare',{source});advanceProgress(source,'image','ক্যাপচার ছবি পাওয়া গেছে। এখন লেখা পড়া হচ্ছে…');sessions[source]=data;delete errors[source];const area=$('captcha-'+source);area.classList.remove('hidden');area.innerHTML='<div class="captcha-picture"><img alt="'+sourceInfo[source].name+' ক্যাপচা" src="'+data.captcha+'"></div><label for="code-'+source+'">বড় ও ছোট অক্ষরসহ ছবির লেখা মিলিয়ে নিন</label><input id="code-'+source+'" type="text" maxlength="32" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="লেখাটি এখানে বসবে">';$('code-'+source).disabled=busy;setCaptchaNotice(source,'ছবির লেখা পড়া হচ্ছে…',true,data);if(useOCR){try{await readCaptcha(source,data);}catch(e){if(e.needsNewCaptcha)throw e;data.ocrReady=false;}}setCaptchaNotice(source,$('code-'+source).value?'লেখাটি ঠিক আছে কি না মিলিয়ে নিন। ভুল হলে এখানেই ঠিক করুন।':'ছবির লেখাটি নিজে লিখুন।',false,data);return data;}
+async function prepareSource(source,useOCR=true){const data=await post('/api/prepare',{source});advanceProgress(source,'image','ক্যাপচার ছবি পাওয়া গেছে। এখন লেখা পড়া হচ্ছে…');sessions[source]=data;delete errors[source];const area=$('captcha-'+source);area.classList.remove('hidden');area.innerHTML='<div class="captcha-picture"><img alt="'+sourceInfo[source].name+' ক্যাপচা" src="'+data.captcha+'"></div><label for="code-'+source+'">ছবির লেখা (বড়-ছোট অক্ষর মিলিয়ে)</label><input id="code-'+source+'" type="text" maxlength="32" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="লেখাটি এখানে বসবে">';$('code-'+source).disabled=busy;setCaptchaNotice(source,'ছবির লেখা পড়া হচ্ছে…',true,data);if(useOCR){try{await readCaptcha(source,data);}catch(e){if(e.needsNewCaptcha)throw e;data.ocrReady=false;}}setCaptchaNotice(source,$('code-'+source).value?'লেখাটি ঠিক আছে কি না মিলিয়ে নিন। ভুল হলে এখানেই ঠিক করুন।':'ছবির লেখাটি নিজে লিখুন।',false,data);return data;}
 function preparationError(source,err){delete sessions[source];errors[source]=friendlyError(err);$('captcha-'+source).innerHTML='<div class="image-placeholder">ছবি পাওয়া যায়নি</div>';setCaptchaNotice(source,errors[source]);}
 async function prepareForReview(sources){beginProgress('prepare',sources);setBusy(true);try{await Promise.all(sources.map(async source=>{try{await prepareSource(source);}catch(err){preparationError(source,err);}finally{advanceProgress(source,'image');advanceProgress(source,'text','ক্যাপচাটি আনা ও ক্যাপচাটি পড়ার ধাপ শেষ।');}}));}catch(err){for(const source of sources){preparationError(source,err);advanceProgress(source,'image');advanceProgress(source,'text');}}finally{finishProgress(sources.some(source=>sessions[source])?'প্রস্তুতির ধাপ শেষ। ছবির সঙ্গে লেখাটি মিলিয়ে নিন।':'ছবি প্রস্তুত হয়নি। উপরের বার্তা দেখে আবার চেষ্টা করুন।');setBusy(false);enableReview();}}
 $('trackingForm').addEventListener('submit',async e=>{e.preventDefault();if(busy||preparing.size)return;const d=details();if(!/^BGD[A-Z0-9]{7,25}$/.test(d.applicationId)||! /^[A-Z0-9]{5,20}$/.test(d.passportNo)){$('formFeedback').textContent='আবেদন ও পাসপোর্ট নম্বর মিলিয়ে লিখুন।';return;}sessions={};current={};errors={};$('formFeedback').textContent='';$('reviewFeedback').textContent='';renderSources();reviewSummary();setPhase('review');await prepareForReview(Object.keys(sourceInfo));});
@@ -402,22 +593,71 @@ function updateSaveState(){const button=$('saveResults');if(button)button.disabl
 async function makeResultImage(){
  if(document.fonts?.ready)await document.fonts.ready;
  const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas unavailable');
- const W=900,pad=42,textWidth=W-pad*2-44,font='"Noto Sans Bengali", sans-serif';
- function lines(text,size,width){ctx.font=size+'px '+font;const output=[];for(const paragraph of String(text||'').split('\n')){let line='';for(const word of paragraph.split(/\s+/)){const candidate=line?line+' '+word:word;if(ctx.measureText(candidate).width>width&&line){output.push(line);line=word;}else line=candidate;}output.push(line);}return output;}
- const blocks=Object.keys(sourceInfo).map(source=>{const r=current[source],error=errors[source],info=r?explain(source,r):{title:'তথ্য পাওয়া যায়নি',meaning:error||'এই উৎসের ফলাফল পাওয়া যায়নি।'};return {source,r,title:lines(info.title,34,textWidth),original:lines(r?.label||'',21,textWidth),meaning:lines((collectionNeedsReview()?collectionEstimateText+' ':'')+(r?shortMeaning(source,r):info.meaning),25,textWidth),steps:source==='ivac'?deliveryProgress(r).steps:null};});
- for(const b of blocks)b.height=110+b.title.length*50+b.original.length*32+b.meaning.length*42+(b.steps?372:0)+60;
- const H=166+blocks.reduce((n,b)=>n+b.height+20,0)+54;canvas.width=W*2;canvas.height=H*2;ctx.scale(2,2);
- const box=(x,y,w,h,color,r=16)=>{ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();};
- const draw=(text,x,y,size,color,weight='400')=>{ctx.font=weight+' '+size+'px '+font;ctx.fillStyle=color;ctx.fillText(text,x,y);};
- const drawLines=(list,x,y,size,color,lineHeight,weight)=>{for(const line of list){draw(line,x,y,size,color,weight);y+=lineHeight;}return y;};
- box(0,0,W,H,'#f2f6fb',0);draw('VisaDesk',pad,57,30,'#2465d8','700');draw('ভিসা ও পাসপোর্টের ফলাফল',pad,96,24,'#20344c','600');draw('BGD: '+details().applicationId,pad,130,18,'#526782');
- let y=166;
- for(const b of blocks){const caution=collectionNeedsReview(),printed=b.source==='visa'&&b.r?.stage==='granted_printed',accent=caution?'#b54248':printed?'#147652':b.source==='visa'?'#2465d8':'#12816a',pending=b.r&&['processing','granted_not_printed'].includes(b.r.stage),bad=!b.r||b.r.stage==='attention'||caution,tint=bad?'#fff0ef':pending?'#fff8e8':'#edf9f3';box(pad,y,W-pad*2,b.height,'#ffffff');box(pad,y,5,b.height,accent,2);let ty=y+37;
-  draw(b.source==='visa'?'ভিসার ফলাফল':'পাসপোর্টের অগ্রগতি',pad+22,ty,23,accent,'600');ty+=26;const summaryHeight=22+b.title.length*50+b.original.length*32;box(pad+20,ty,W-pad*2-40,summaryHeight,tint,10);ty+=42;ty=drawLines(b.title,pad+34,ty,34,caution?'#b54248':printed?'#147652':'#20344c',50,'600');ty=drawLines(b.original,pad+34,ty,21,'#526782',32);ty+=28;ty=drawLines(b.meaning,pad+22,ty,25,'#42576e',42);
-  if(b.steps){const doneCount=b.steps.filter(step=>step.done).length,percent=doneCount*25,progressAccent='#12816a';ty+=12;draw('ডেলিভারির অগ্রগতি',pad+22,ty,23,progressAccent,'600');draw(percent.toLocaleString('bn-BD')+'%',W-pad-125,ty,36,progressAccent,'700');ty+=30;draw(doneCount.toLocaleString('bn-BD')+' / ৪ ধাপ সম্পন্ন',pad+22,ty,20,'#526782');ty+=16;const barWidth=W-pad*2-44,barX=pad+22;box(barX,ty,barWidth,12,'#dce7ed',6);if(percent>0)box(barX,ty,barWidth*percent/100,12,progressAccent,6);for(let i=1;i<4;i++)box(barX+barWidth*i/4-1,ty,3,12,'#ffffff',0);ty+=48;for(let i=0;i<4;i++){const cx=barX+barWidth*(i+.5)/4,done=b.steps[i].done;box(cx-17,ty-20,34,34,done?'#12816a':'#e6edf3',17);draw(done?'✓':(i+1).toLocaleString('bn-BD'),cx-8,ty+4,22,done?'#ffffff':'#526782','600');ctx.font='18px '+font;draw(deliveryShortTitles[i],cx-ctx.measureText(deliveryShortTitles[i]).width/2,ty+39,18,'#42576e');}ty+=84;for(let i=0;i<4;i++){const done=b.steps[i].done;draw((i+1).toLocaleString('bn-BD')+'. '+deliveryTitles[i],pad+22,ty,23,'#42576e');draw(done?'সম্পন্ন':'অপেক্ষায়',W-pad-145,ty,22,done?'#12816a':'#64748b');ty+=39;}}
-  if(b.r)draw('যাচাই: '+date(b.r.checkedAt),pad+22,y+b.height-20,19,'#64748b');y+=b.height+20;
- }
- draw('VisaDesk · মূল উৎসের তথ্য অনুযায়ী · সরকারি ওয়েবসাইট নয়',pad,H-25,14,'#64748b');
+ const W=900,pad=40,cardW=W-pad*2,px=26,inner=cardW-px*2,font='"Noto Sans Bengali","DM Sans",sans-serif';
+ const tones={good:{c:'#147652',bg:'#eaf7f0'},warn:{c:'#96610d',bg:'#fff6e0'},bad:{c:'#b54248',bg:'#fff0ef'}};
+ function lines(text,size,width,weight='400'){ctx.font=weight+' '+size+'px '+font;const out=[];for(const para of String(text||'').split('\n')){let line='';for(const word of para.split(/\s+/)){const cand=line?line+' '+word:word;if(ctx.measureText(cand).width>width&&line){out.push(line);line=word;}else line=cand;}out.push(line);}return out;}
+ const caution=collectionNeedsReview();
+ const blocks=Object.keys(sourceInfo).map(source=>{
+  const r=current[source],error=errors[source],info=r?explain(source,r):{title:'তথ্য পাওয়া যায়নি',meaning:error||'এই উৎসের ফলাফল পাওয়া যায়নি।'};
+  const toneKey=(!r||r.stage==='attention'||caution)?'bad':['processing','granted_not_printed'].includes(r.stage)?'warn':'good';
+  const textW=inner-40-56-18,meaningText=(caution?collectionEstimateText+' ':'')+(r?shortMeaning(source,r):info.meaning);
+  return {source,r,toneKey,tone:tones[toneKey],title:lines(info.title,32,textW,'700'),original:lines(r?.label||'',20,textW),meaning:lines(meaningText,23,inner),steps:source==='ivac'?deliveryProgress(r).steps:null};
+ });
+ const heights=[];
+ const paint=(dry,H)=>{
+  const box=(x,y,w,h,fill,r=16)=>{if(dry)return;ctx.fillStyle=fill;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();};
+  const draw=(t,x,y,size,color,weight='400',align='left')=>{if(dry)return;ctx.font=weight+' '+size+'px '+font;ctx.fillStyle=color;ctx.textAlign=align;ctx.fillText(t,x,y);ctx.textAlign='left';};
+  const drawLines=(list,x,y,size,color,lh,weight)=>{for(const l of list){draw(l,x,y,size,color,weight);y+=lh;}return y;};
+  const width=(t,size,weight='400')=>{ctx.font=weight+' '+size+'px '+font;return ctx.measureText(t).width;};
+  const pill=(text,rx,y,size,fg,bg,weight='600')=>{const w=width(text,size,weight)+26;box(rx-w,y,w,size+16,bg,(size+16)/2);draw(text,rx-w/2,y+size+3,size,fg,weight,'center');return w;};
+  if(!dry){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#e8ebff');g.addColorStop(.5,'#f2f6fb');g.addColorStop(1,'#eef7f5');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+  const hy=32,hh=164;
+  if(!dry){
+   const g=ctx.createLinearGradient(pad,hy,W-pad,hy+hh);g.addColorStop(0,'#5b5bf0');g.addColorStop(.55,'#7a5af5');g.addColorStop(1,'#14a8c4');box(pad,hy,cardW,hh,g,30);
+   ctx.save();ctx.beginPath();ctx.roundRect(pad,hy,cardW,hh,30);ctx.clip();ctx.globalAlpha=.13;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(W-pad-30,hy+10,120,0,7);ctx.fill();ctx.beginPath();ctx.arc(W-pad-170,hy+hh,76,0,7);ctx.fill();ctx.restore();
+   box(pad+28,hy+28,56,56,'rgba(255,255,255,.22)',18);const cx=pad+56,cy=hy+56;ctx.strokeStyle='#fff';ctx.lineWidth=3.2;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(cx,cy-16);ctx.lineTo(cx+14,cy-10);ctx.lineTo(cx+14,cy+3);ctx.lineTo(cx,cy+17);ctx.lineTo(cx-14,cy+3);ctx.lineTo(cx-14,cy-10);ctx.closePath();ctx.moveTo(cx-6,cy+1);ctx.lineTo(cx-1,cy+6);ctx.lineTo(cx+7,cy-4);ctx.stroke();
+  }
+  draw('VisaDesk',pad+104,hy+58,32,'#ffffff','700');draw('ভিসা ও পাসপোর্টের ফলাফল',pad+104,hy+90,20,'rgba(255,255,255,.9)','500');
+  const idText='BGD: '+details().applicationId;pill(idText,pad+28+width(idText,18,'600')+26,hy+112,18,'#ffffff','rgba(255,255,255,.2)');
+  const stamp=blocks.map(b=>b.r?.checkedAt).find(Boolean);if(stamp)draw('যাচাই: '+date(stamp),W-pad-28,hy+hh-28,17,'rgba(255,255,255,.88)','500','right');
+  let y=hy+hh+24;
+  blocks.forEach((b,bi)=>{
+   const x0=pad+px,t=b.tone,bh=heights[bi]||0,sumH=Math.max(100,44*b.title.length+28*b.original.length+36);let ty=y+26;
+   if(!dry){ctx.save();ctx.shadowColor='rgba(40,50,120,.16)';ctx.shadowBlur=26;ctx.shadowOffsetY=8;box(pad,y,cardW,bh,'#ffffff',26);ctx.restore();ctx.save();ctx.beginPath();ctx.roundRect(pad,y,cardW,bh,26);ctx.clip();ctx.fillStyle=t.c;ctx.fillRect(pad,y,7,bh);ctx.restore();ctx.fillStyle=t.c;ctx.beginPath();ctx.arc(x0+8,ty+12,7,0,7);ctx.fill();}
+   draw(b.source==='visa'?'ভিসার ফলাফল':'পাসপোর্টের অগ্রগতি',x0+26,ty+20,22,t.c,'700');
+   pill(sourceInfo[b.source].name,x0+inner,ty-2,16,'#5a6483','#eef0fb');ty+=50;
+   box(x0,ty,inner,sumH,t.bg,20);
+   if(!dry){const cx=x0+48,cy=ty+48;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,cy,28,0,7);ctx.fill();ctx.strokeStyle=t.c;ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
+    if(b.toneKey==='good'){ctx.moveTo(cx-10,cy+1);ctx.lineTo(cx-3,cy+8);ctx.lineTo(cx+11,cy-8);}
+    else if(b.toneKey==='warn'){ctx.arc(cx,cy,14,0,7);ctx.moveTo(cx,cy-7);ctx.lineTo(cx,cy);ctx.lineTo(cx+6,cy+4);}
+    else{ctx.moveTo(cx,cy-11);ctx.lineTo(cx,cy+2);ctx.moveTo(cx,cy+11);ctx.lineTo(cx,cy+11.5);}
+    ctx.stroke();}
+   const tx=x0+94;drawLines(b.title,tx,ty+54,32,b.toneKey==='bad'?t.c:'#1d2a44',44,'700');drawLines(b.original,tx,ty+54+44*b.title.length-6,20,'#5a6483',28);
+   ty+=sumH+36;ty=drawLines(b.meaning,x0,ty,23,'#3d5068',38);
+   if(b.steps){
+    const done=b.steps.filter(s=>s.done).length,pc=done*25,gc='#12816a';
+    ty+=4;if(!dry){ctx.fillStyle='#e7edf5';ctx.fillRect(x0,ty,inner,2);}
+    ty+=46;draw('ডেলিভারির অগ্রগতি',x0,ty,22,gc,'700');draw(pc.toLocaleString('bn-BD')+'%',x0+inner,ty+8,40,gc,'700','right');
+    ty+=32;draw(done.toLocaleString('bn-BD')+' / ৪ ধাপ সম্পন্ন',x0,ty,18,'#5a6483');
+    ty+=26;box(x0,ty,inner,14,'#e3ebe8',7);
+    if(!dry&&pc>0){const g=ctx.createLinearGradient(x0,0,x0+inner,0);g.addColorStop(0,'#1093a3');g.addColorStop(1,'#22c58b');box(x0,ty,inner*pc/100,14,g,7);}
+    ty+=62;
+    for(let i=0;i<4;i++){const cx=x0+inner*(i+.5)/4,d=b.steps[i].done;
+     if(!dry){if(i<3){const nx=x0+inner*(i+1.5)/4;ctx.fillStyle=(d&&b.steps[i+1].done)?gc:'#dfe7ea';ctx.fillRect(cx+24,ty-2,nx-cx-48,4);}
+      ctx.fillStyle=d?gc:'#e8eef0';ctx.beginPath();ctx.arc(cx,ty,20,0,7);ctx.fill();
+      if(d){ctx.strokeStyle='#fff';ctx.lineWidth=3.4;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(cx-8,ty+1);ctx.lineTo(cx-2,ty+7);ctx.lineTo(cx+9,ty-6);ctx.stroke();}}
+     if(!d)draw((i+1).toLocaleString('bn-BD'),cx,ty+7,19,'#5a6483','600','center');
+     draw(deliveryShortTitles[i],cx,ty+50,17,d?'#1d2a44':'#5a6483','500','center');}
+    ty+=96;
+    for(let i=0;i<4;i++){const d=b.steps[i].done;box(x0,ty-28,inner,40,i%2?'#ffffff':'#f6f8fc',12);draw((i+1).toLocaleString('bn-BD')+'. '+deliveryTitles[i],x0+14,ty,21,'#3d5068');pill(d?'সম্পন্ন':'অপেক্ষায়',x0+inner-8,ty-26,15,d?gc:'#64748b',d?'#e0f4ea':'#eef1f5');ty+=46;}
+   }
+   ty+=14;if(b.r)draw('যাচাই: '+date(b.r.checkedAt),x0,ty,17,'#74809c');
+   const end=ty+28;if(dry)heights[bi]=end-y;y+=(heights[bi]||0)+22;
+  });
+  draw('VisaDesk · মূল উৎসের তথ্য অনুযায়ী · সরকারি ওয়েবসাইট নয়',W/2,y+22,15,'#74809c','400','center');
+  return y+52;
+ };
+ const H=paint(true);canvas.width=W*2;canvas.height=H*2;ctx.scale(2,2);paint(false,H);
  return await new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Image failed')),'image/png'));
 }
 $('saveResults').onclick=async()=>{if(busy||saving||phase!=='result')return;saving=true;updateSaveState();$('saveResults').textContent='ছবি তৈরি হচ্ছে…';$('saveFeedback').textContent='';let url;
@@ -427,4 +667,119 @@ $('saveResults').onclick=async()=>{if(busy||saving||phase!=='result')return;savi
 };
 
 renderSources();setPhase('entry');
+</script>
+<script>
+(()=>{
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+['o1','o2','o3'].forEach(c=>{const d=document.createElement('i');d.className='orb '+c;document.body.appendChild(d)});
+document.addEventListener('pointermove',e=>{const t=e.target.closest?.('.form-card,.review-card,.source-box,.delivery-step-card');if(!t)return;const r=t.getBoundingClientRect();t.style.setProperty('--mx',(e.clientX-r.left)+'px');t.style.setProperty('--my',(e.clientY-r.top)+'px')},{passive:true});
+document.addEventListener('pointerdown',e=>{const b=e.target.closest?.('.btn');if(!b||b.disabled||reduce)return;const r=b.getBoundingClientRect(),s=Math.max(r.width,r.height)*2,d=document.createElement('span');d.className='ripple';d.style.cssText=`width:${s}px;height:${s}px;left:${e.clientX-r.left-s/2}px;top:${e.clientY-r.top-s/2}px`;b.appendChild(d);setTimeout(()=>d.remove(),700)});
+const bn='০১২৩৪৫৬৭৮৯',toEn=s=>s.replace(/[০-৯]/g,c=>bn.indexOf(c)),toBn=n=>String(n).replace(/\d/g,d=>bn[d]);
+function countUp(el){const node=[...el.childNodes].find(n=>n.nodeType===3);if(!node||el.dataset.counted)return;const target=parseInt(toEn(node.nodeValue),10);if(isNaN(target))return;el.dataset.counted='1';if(reduce||target===0)return;const t0=performance.now(),dur=1100;(function tick(t){const p=Math.min((t-t0)/dur,1);node.nodeValue=toBn(Math.round(target*(1-Math.pow(1-p,3))));if(p<1)requestAnimationFrame(tick)})(t0)}
+function confetti(){if(reduce)return;const colors=['#5b5bf0','#14a8c4','#b05bf0','#22c58b','#f1ca7b'];for(let i=0;i<60;i++){const c=document.createElement('i');c.className='confetti';c.style.cssText=`left:${Math.random()*100}vw;background:${colors[i%5]};--dx:${(Math.random()-.5)*240}px;--rot:${Math.random()*720}deg;animation-duration:${2+Math.random()*1.6}s;animation-delay:${Math.random()*.4}s`;document.body.appendChild(c);setTimeout(()=>c.remove(),4500)}}
+let lastKey='';const rs=document.getElementById('resultsSection');
+if(rs)new MutationObserver(()=>{rs.querySelectorAll('.delivery-percentage b').forEach(countUp);const w=rs.querySelector('.status-artwork--approved,.status-artwork--delivered');const key=w?w.className+(rs.querySelector('.result-meta strong')?.textContent||''):'';if(key&&key!==lastKey){lastKey=key;confetti()}if(!key)lastKey=''}).observe(rs,{childList:true,subtree:true});
+})();
+</script>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const toast=(m)=>{const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2400)};
+window.addEventListener('offline',()=>toast('ইন্টারনেট সংযোগ নেই'));
+window.addEventListener('online',()=>toast('আবার অনলাইনে আছেন'));
+const _notice=window.setCaptchaNotice;
+window.setCaptchaNotice=function(source,message,reading,data){
+  _notice(source,message,reading,data);
+  if(data&&sessions[source]!==data)return;
+  const box=$('captcha-'+source)?.closest('.source-box');if(!box)return;
+  box.dataset.state=reading?'reading':data?(data.ocrReady?'ready':'check'):(message?'error':'');
+};
+$('captchaSources').addEventListener('input',e=>{
+  if(!e.target.matches('.captcha-area input'))return;
+  const box=e.target.closest('.source-box');if(box&&box.dataset.state!=='expired')box.dataset.state=e.target.value.trim()?'typed':'check';
+});
+$('captchaSources').addEventListener('focusin',e=>{if(e.target.matches('.captcha-area input'))setTimeout(()=>e.target.select(),0)});
+$('captchaSources').addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||!e.target.matches('.captcha-area input'))return;
+  const list=[...document.querySelectorAll('.captcha-area input')],i=list.indexOf(e.target);
+  if(i>-1&&i<list.length-1){e.preventDefault();list[i+1].focus()}
+});
+const _prep=window.prepareForReview;
+window.prepareForReview=async function(...a){
+  const out=await _prep.apply(this,a);
+  try{if(matchMedia('(pointer:fine)').matches&&phase==='review'){
+    const list=[...document.querySelectorAll('.captcha-area input')];
+    const t=list.find(i=>!i.value.trim())||list.find(i=>i.closest('.source-box')?.dataset.state==='check');
+    (t||$('confirmBtn'))?.focus({preventScroll:true});
+  }}catch{}
+  return out;
+};
+setInterval(()=>{
+  for(const source of Object.keys(sourceInfo)){
+    const box=$('captcha-'+source)?.closest('.source-box');if(!box)continue;
+    const data=sessions[source];let ex=box.querySelector('.expiry');
+    if(!data||!data.expiresAt){ex?.remove();continue}
+    data._t0??=Date.now();
+    if(!ex){ex=document.createElement('div');ex.className='expiry';ex.innerHTML='<span></span><i><b></b></i>';box.appendChild(ex)}
+    const left=data.expiresAt-Date.now(),ttl=Math.max(data.expiresAt-data._t0,1);
+    const sec=Math.max(0,Math.ceil(left/1000)),m=Math.floor(sec/60),s=sec%60;
+    ex.style.setProperty('--left',Math.max(0,Math.min(1,left/ttl)));
+    ex.classList.toggle('low',left>0&&left<30000);ex.classList.toggle('out',left<=0);
+    ex.firstChild.textContent=left>0?('মেয়াদ '+m.toLocaleString('bn-BD')+':'+String(s).padStart(2,'0').replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d])):'মেয়াদ শেষ — নতুন ছবি নিন';
+    if(left<=0&&box.dataset.state!=='expired'&&!busy)box.dataset.state='expired';
+  }
+},1000);
+const rs=$('resultsSection'),banner=document.createElement('div');banner.id='resultBanner';banner.className='result-banner';rs.parentNode.insertBefore(banner,rs);
+let bannerKey='';
+function toneOf(source){const r=current[source];if(!r)return 'bad';if(r.stage==='attention'||collectionNeedsReview())return 'bad';return ['processing','granted_not_printed'].includes(r.stage)?'warn':'good'}
+function renderBanner(){
+  if(phase!=='result'||(busy&&!current.visa&&!current.ivac)){banner.innerHTML='';bannerKey='';return}
+  const tiles=Object.keys(sourceInfo).map(source=>{
+    const r=current[source],tone=toneOf(source),title=r?explain(source,r).title:'ফলাফল পাওয়া যায়নি';
+    const pc=source==='ivac'&&r?deliveryProgress(r).percent:null;
+    return {source,tone,title,pc};
+  });
+  const key=JSON.stringify(tiles);if(key===bannerKey)return;bannerKey=key;
+  banner.innerHTML=tiles.map(t=>{
+    const glyph=t.tone==='good'?'✓':t.tone==='warn'?'…':'!';
+    const lead=t.source==='ivac'&&t.pc!==null?'<div class="ring" style="--p:0" data-p="'+t.pc+'"><span>'+t.pc.toLocaleString('bn-BD')+'%</span></div>':'<div class="tile-icon" aria-hidden="true">'+glyph+'</div>';
+    return '<div class="tile tone-'+t.tone+'">'+lead+'<div><small>'+(t.source==='visa'?'ভিসা':'পাসপোর্ট')+'</small><strong>'+esc(t.title)+'</strong></div></div>';
+  }).join('');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>banner.querySelectorAll('.ring').forEach(r=>r.style.setProperty('--p',r.dataset.p))));
+}
+new MutationObserver(renderBanner).observe(rs,{childList:true,subtree:true});
+new MutationObserver(renderBanner).observe($('app'),{attributes:true,attributeFilter:['data-phase']});
+const actions=document.querySelector('.result-actions'),save=$('saveResults');
+const copyBtn=document.createElement('button');copyBtn.type='button';copyBtn.className='btn secondary';copyBtn.id='copyResults';copyBtn.textContent='⧉ কপি';
+actions.insertBefore(copyBtn,save);
+let shareBtn=null;
+if(navigator.share){shareBtn=document.createElement('button');shareBtn.type='button';shareBtn.className='btn secondary';shareBtn.id='shareResults';shareBtn.textContent='↗ শেয়ার';actions.insertBefore(shareBtn,save)}
+function summaryText(){
+  const d=details(),out=['VisaDesk — BGD: '+d.applicationId];
+  for(const source of Object.keys(sourceInfo)){
+    const r=current[source],label=source==='visa'?'ভিসা':'পাসপোর্ট';
+    if(!r){out.push(label+': ফলাফল পাওয়া যায়নি');continue}
+    let line=label+': '+explain(source,r).title+' ('+r.label+')';
+    if(source==='ivac'){const p=deliveryProgress(r);if(p.done!==null)line+=' — '+p.done+'/4 ধাপ';}
+    out.push(line);
+  }
+  return out.join('\n');
+}
+copyBtn.onclick=async()=>{
+  const text=summaryText();
+  try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch{}ta.remove()}
+  toast('ফলাফল কপি হয়েছে');
+};
+if(shareBtn)shareBtn.onclick=async()=>{
+  if(busy||saving)return;saving=true;updateSaveState();shareBtn.disabled=true;
+  try{const blob=await makeResultImage(),file=new File([blob],'VisaDesk-'+details().applicationId+'.png',{type:'image/png'});
+    if(navigator.canShare?.({files:[file]}))await navigator.share({files:[file],title:'VisaDesk ফলাফল'});else await navigator.share({title:'VisaDesk ফলাফল',text:summaryText()});
+  }catch(e){if(e?.name!=='AbortError')toast('শেয়ার করা যায়নি')}
+  finally{saving=false;updateSaveState();shareBtn.disabled=false}
+};
+const sync=()=>{copyBtn.disabled=save.disabled;if(shareBtn)shareBtn.disabled=save.disabled};
+new MutationObserver(sync).observe(save,{attributes:true,attributeFilter:['disabled']});sync();
+save.addEventListener('click',()=>setTimeout(()=>{if($('saveFeedback').textContent.includes('প্রস্তুত'))toast('ছবি ডাউনলোড হচ্ছে')},1500));
+})();
 </script></body></html>
