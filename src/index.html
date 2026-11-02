@@ -410,6 +410,140 @@ html{scroll-behavior:smooth}
 .result-window .result-actions .btn{flex:1 1 45%}
 }
 @media(prefers-reduced-motion:reduce){.sk-line,.tile,.result-window .result-main:after,.delivery-milestones .done:before,.source-box .refresh{animation:none!important}.ring{transition:none}}
+
+/* ===== VisaDesk Motion Studio — illustrated status scenes ===== */
+.delivery-scene{
+  --scene-ink:var(--ink);
+  position:relative;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(215px,1fr);
+  align-items:center;gap:22px;margin:0 0 15px;padding:20px 22px;
+  border:1px solid color-mix(in srgb,var(--green) 18%,var(--line));border-radius:23px;
+  background:linear-gradient(126deg,color-mix(in srgb,var(--green-soft) 78%,var(--surface)),var(--subtle));
+  box-shadow:0 12px 28px -23px color-mix(in srgb,var(--green) 65%,transparent);
+  overflow:hidden;isolation:isolate;animation:scene-enter .7s cubic-bezier(.2,.8,.2,1) both;
+}
+.delivery-scene:before{content:'';position:absolute;width:290px;height:290px;top:-200px;right:-70px;
+  background:radial-gradient(circle,color-mix(in srgb,var(--green) 20%,transparent),transparent 70%);
+  pointer-events:none;animation:scene-breathe 7s ease-in-out infinite alternate}
+.delivery-scene:after{content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(circle,color-mix(in srgb,var(--green) 19%,transparent) .8px,transparent 1px);
+  background-size:18px 18px;opacity:.19;mask-image:linear-gradient(90deg,#000,transparent 65%)}
+.delivery-scene .dsc{position:relative;z-index:1;width:100%;max-width:490px;height:auto;display:block;overflow:visible;
+  filter:drop-shadow(0 14px 18px color-mix(in srgb,var(--green) 11%,transparent))}
+.delivery-scene-text{position:relative;z-index:1;min-width:0;align-self:center}
+.delivery-scene-tag{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;margin-bottom:10px;
+  border-radius:99px;border:1px solid color-mix(in srgb,var(--green) 20%,var(--line));background:var(--surface);
+  color:var(--green);font:700 10px 'DM Sans',sans-serif;letter-spacing:1px;box-shadow:0 6px 12px -10px var(--green)}
+.delivery-scene-tag:before{content:'';width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:var(--green)}
+.delivery-scene-text strong{display:block;max-width:430px;color:var(--green);font-size:clamp(17px,2vw,21px);line-height:1.65;font-weight:700;letter-spacing:-.25px}
+.delivery-scene-text p{max-width:450px;margin:7px 0 0;color:var(--muted);font-size:13px;line-height:1.9}
+.delivery-scene--received{--scene-green:#4f84d5;--scene-teal:#0ca5b6}
+.delivery-scene--processing{--scene-green:#6074df;--scene-teal:#39b5be}
+.delivery-scene--ready{--scene-green:#21a688;--scene-teal:#51c9cc}
+.delivery-scene--done{--scene-green:#168760;--scene-teal:#50bdad}
+.delivery-scene--received,.delivery-scene--processing{border-color:color-mix(in srgb,var(--accent) 18%,var(--line));background:linear-gradient(126deg,color-mix(in srgb,var(--accent-soft) 68%,var(--surface)),var(--subtle))}
+.delivery-scene--received .delivery-scene-text strong,.delivery-scene--processing .delivery-scene-text strong{color:var(--accent)}
+.delivery-scene--received .delivery-scene-tag,.delivery-scene--processing .delivery-scene-tag{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 23%,var(--line))}
+.delivery-scene--received .delivery-scene-tag:before,.delivery-scene--processing .delivery-scene-tag:before{background:var(--accent)}
+.dsc .scene-backdrop{fill:var(--scene-green);opacity:.075}
+.dsc .scene-glow{fill:var(--scene-teal);opacity:.14}
+.dsc .scene-floor{fill:var(--ink);opacity:.075}
+.dsc .scene-line{stroke:var(--scene-green)}
+.dsc .scene-ink{fill:#30466b}
+.dsc .scene-passport{filter:drop-shadow(0 3px 5px #102f3250)}
+.dsc .scene-glint{animation:scene-glint 2.7s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.dsc .scene-glint:nth-of-type(2){animation-delay:.7s}
+.dsc .scene-glint:nth-of-type(3){animation-delay:1.4s}
+@keyframes scene-enter{from{opacity:0;transform:translateY(13px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes scene-breathe{to{transform:translate(-30px,30px) scale(1.25)}}
+@keyframes scene-glint{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:.9;transform:scale(1.12)}}
+
+/* The actual provider status controls the scene; these loops are decorative only. */
+.scene-ready-loop{animation:ready-loop 9.6s ease-in-out infinite}
+@keyframes ready-loop{0%,100%{opacity:0}5%,92%{opacity:1}98%{opacity:0}}
+.ready-agent{animation:ready-agent-arrive 9.6s cubic-bezier(.22,.8,.26,1) infinite}
+@keyframes ready-agent-arrive{0%,4%{transform:translateX(-29px);opacity:0}16%,91%{transform:translateX(0);opacity:1}100%{transform:translateX(0);opacity:0}}
+.ready-agent-arm,.ready-visitor-arm{transform-box:view-box}
+.ready-agent-arm{transform-origin:174px 151px;animation:ready-agent-extend 9.6s ease-in-out infinite}
+@keyframes ready-agent-extend{0%,18%{transform:rotate(0)}30%,50%{transform:rotate(-66deg)}68%,100%{transform:rotate(0)}}
+.ready-visitor-arm{transform-origin:317px 149px;animation:ready-visitor-reach 9.6s ease-in-out infinite}
+@keyframes ready-visitor-reach{0%,26%{transform:rotate(0)}43%,61%{transform:rotate(58deg)}72%,100%{transform:rotate(86deg)}}
+.ready-passport{transform-box:view-box;transform-origin:192px 184px;animation:ready-passport-transfer 9.6s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes ready-passport-transfer{
+  0%,17%{transform:translate(0,-12px) rotate(-9deg)}
+  30%,42%{transform:translate(23px,-28px) rotate(-1deg)}
+  52%,61%{transform:translate(49px,-29px) rotate(7deg)}
+  72%,91%{transform:translate(57px,-58px) rotate(-8deg)}
+  100%{transform:translate(57px,-58px) rotate(-8deg)}
+}
+.ready-customer-cheer{animation:ready-cheer 9.6s ease-in-out infinite}
+@keyframes ready-cheer{0%,55%{transform:translateY(0)}63%{transform:translateY(-6px)}70%,100%{transform:translateY(0)}}
+.ready-sparkles{transform-box:view-box;transform-origin:270px 122px;animation:ready-sparkle 9.6s ease-in-out infinite}
+@keyframes ready-sparkle{0%,44%,90%,100%{opacity:0;transform:scale(.7)}55%,68%{opacity:1;transform:scale(1)}76%{opacity:.25;transform:scale(1.2)}}
+.ready-guide{stroke-dasharray:4 9;animation:guide-dash 1.4s linear infinite,ready-guide-appear 9.6s ease-in-out infinite}
+@keyframes guide-dash{to{stroke-dashoffset:-26}}
+@keyframes ready-guide-appear{0%,26%,61%,100%{opacity:0}34%,52%{opacity:.8}}
+.ready-status-bubble{transform-box:fill-box;transform-origin:center;animation:ready-bubble 9.6s cubic-bezier(.2,.75,.23,1.4) infinite}
+@keyframes ready-bubble{0%,55%{transform:scale(.1);opacity:0}67%,90%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}
+
+/* Received: a document settles into the intake tray and is stamped. */
+.received-envelope{animation:received-drop 5.8s cubic-bezier(.2,.72,.26,1) infinite}
+@keyframes received-drop{0%,8%{opacity:0;transform:translateY(-18px) rotate(-7deg)}21%,70%{opacity:1;transform:translateY(0) rotate(0)}90%,100%{opacity:0;transform:translateY(0)}}
+.received-stamp{transform-box:view-box;transform-origin:318px 93px;animation:received-stamp-down 5.8s cubic-bezier(.33,1.4,.5,1) infinite}
+@keyframes received-stamp-down{0%,28%{transform:translateY(-22px);opacity:0}39%,45%{transform:translateY(12px);opacity:1}54%,86%{transform:translateY(-2px);opacity:1}100%{opacity:0}}
+.received-check{transform-box:fill-box;transform-origin:center;animation:received-confirm 5.8s cubic-bezier(.18,1.6,.3,1) infinite}
+@keyframes received-confirm{0%,43%{opacity:0;transform:scale(.3)}54%,87%{opacity:1;transform:scale(1)}100%{opacity:0}}
+
+/* Processing: a moving scan line stays within the illustration, not over live data. */
+.process-beam{animation:process-beam 3.5s ease-in-out infinite alternate}
+@keyframes process-beam{0%{transform:translateY(-36px);opacity:.2}50%{opacity:1}100%{transform:translateY(52px);opacity:.25}}
+.process-orbit{transform-box:view-box;transform-origin:355px 118px;animation:process-orbit 10s linear infinite}
+@keyframes process-orbit{to{transform:rotate(360deg)}}
+.process-paper{animation:process-paper 4.6s ease-in-out infinite alternate}
+@keyframes process-paper{to{transform:translateY(-4px)}}
+.process-pulse{transform-box:fill-box;transform-origin:center;animation:process-pulse 2.4s ease-in-out infinite}
+@keyframes process-pulse{50%{opacity:.4;transform:scale(1.15)}}
+
+/* Delivered: passport lift, check badge, and graceful celebration. */
+.done-character{animation:done-character-enter .8s cubic-bezier(.2,.8,.2,1) both}
+@keyframes done-character-enter{from{opacity:0;transform:translateY(19px)}to{opacity:1;transform:none}}
+.done-arm{transform-box:view-box;transform-origin:275px 149px;animation:done-raise 1.25s .3s cubic-bezier(.2,.8,.25,1.15) both}
+@keyframes done-raise{0%{transform:rotate(0)}75%{transform:rotate(-130deg)}100%{transform:rotate(-116deg)}}
+.done-body{animation:done-sway 4s 1.5s ease-in-out infinite alternate}
+@keyframes done-sway{to{transform:translateY(-3px)}}
+.done-badge{transform-box:fill-box;transform-origin:center;animation:done-badge-pop .75s 1s cubic-bezier(.16,1.8,.3,1) both}
+@keyframes done-badge-pop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+.done-check{stroke-dasharray:1;stroke-dashoffset:1;animation:done-check-draw .7s 1.45s ease-out forwards}
+@keyframes done-check-draw{to{stroke-dashoffset:0}}
+.done-halo{transform-box:fill-box;transform-origin:center;animation:done-halo 3.2s 1.7s ease-out infinite}
+@keyframes done-halo{0%{opacity:.7;transform:scale(.8)}100%{opacity:0;transform:scale(1.9)}}
+.done-confetti{animation:done-confetti 4.1s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.done-confetti:nth-child(2){animation-delay:.5s}.done-confetti:nth-child(3){animation-delay:1s}
+.done-confetti:nth-child(4){animation-delay:1.5s}.done-confetti:nth-child(5){animation-delay:2s}
+@keyframes done-confetti{0%,100%{opacity:.2;transform:translateY(-2px) rotate(-15deg)}50%{opacity:1;transform:translateY(5px) rotate(30deg)}}
+.done-passport-shine{animation:done-passport-shine 2.8s 1.4s ease-in-out infinite alternate}
+@keyframes done-passport-shine{from{opacity:.2}to{opacity:1}}
+
+.delivery-scene.is-paused,.delivery-scene.is-paused *, .delivery-scene.is-paused:before{animation-play-state:paused!important}
+@media(max-width:740px){
+ .delivery-scene{grid-template-columns:1fr;gap:2px;text-align:center;padding:16px 17px 19px}
+ .delivery-scene .dsc{max-width:410px;margin:0 auto}
+ .delivery-scene-text{margin-top:-9px}
+ .delivery-scene-text strong,.delivery-scene-text p{margin-left:auto;margin-right:auto}
+ .delivery-scene-text strong{font-size:18px}
+ .delivery-scene-text p{font-size:12.5px}
+ .delivery-scene-tag{margin-bottom:7px}
+}
+@media(max-width:400px){.delivery-scene{padding:12px 11px 15px;border-radius:18px}.delivery-scene .dsc{max-width:340px}.delivery-scene-text{margin-top:-5px}}
+@media(prefers-reduced-motion:reduce){
+ .delivery-scene,.delivery-scene:before,.delivery-scene *{animation:none!important;transition:none!important}
+ .scene-ready-loop,.ready-agent,.received-envelope,.received-stamp,.received-check,.done-character,.done-badge{opacity:1!important}
+ .ready-passport{transform:translate(57px,-58px) rotate(-8deg)!important}
+ .ready-agent-arm{transform:rotate(-66deg)!important}
+ .ready-visitor-arm{transform:rotate(86deg)!important}
+ .ready-sparkles,.ready-guide,.done-confetti,.done-halo{display:none!important}
+ .done-arm{transform:rotate(-116deg)!important}.done-check{stroke-dashoffset:0!important}
+}
+
 </style></head><body data-theme="dark"><main class="shell" id="app" data-phase="entry"><header class="header"><a class="brand" href="/" aria-label="VisaDesk"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span>Visa<small>Desk</small></a><div class="header-actions"><span class="header-note">ভিসা ও পাসপোর্ট ট্র্যাকার</span><button type="button" class="theme-toggle" id="themeToggle" aria-pressed="true" aria-label="দিনের মোড চালু করুন"><span id="themeIcon" aria-hidden="true">☀</span><span id="themeLabel">দিনের মোড</span></button></div></header><section class="hero" id="introHero"><span class="eyebrow">VISA & PASSPORT TRACKING</span></section><div class="flow-shell"><nav id="flowSteps" class="stepper" aria-label="চেক করার ধাপ"><div class="flow-step active" id="step-entry"><b>১</b> আবেদনের তথ্য</div><div class="flow-step" id="step-review"><b>২</b> ক্যাপচা যাচাই</div><div class="flow-step" id="step-result"><b>৩</b> ফলাফল</div></nav><section class="operation-panel hidden" id="operationPanel" aria-live="polite" aria-label="চেক করার অগ্রগতি"><div class="operation-icon" id="operationIcon" aria-hidden="true">↻</div><div class="operation-content"><div class="operation-top"><strong id="operationTitle"></strong><span id="operationCount"></span></div><p id="operationMessage"></p><div class="operation-track" id="operationTrack" role="progressbar" aria-label="সম্পন্ন চেকের কাজ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="operationFill" style="width:0%"></span></div></div></section><section id="entryStage" class="card form-card"><div class="panel-heading"><span class="panel-icon" aria-hidden="true">▤</span><div><h2>আবেদনের তথ্য দিন</h2><p>আবেদনপত্র ও পাসপোর্ট অনুযায়ী নম্বর লিখুন।</p></div></div><form id="trackingForm"><div class="fields-wrap" id="fieldsWrap"><div class="fields"><div class="field"><label for="applicationId">BGD / আবেদন নম্বর</label><input id="applicationId" aria-controls="recentSuggestions" aria-expanded="false" type="text" required pattern="BGD[A-Za-z0-9]{7,25}" maxlength="28" placeholder="BGD দিয়ে শুরু হওয়া নম্বর" autocomplete="off" spellcheck="false" autocapitalize="characters" autocorrect="off"></div><div class="field"><label for="passportNo">পাসপোর্ট নম্বর</label><div class="input-wrap"><input id="passportNo" aria-controls="recentSuggestions" aria-expanded="false" type="text" required pattern="[A-Za-z0-9]{5,20}" maxlength="20" placeholder="পাসপোর্টে থাকা নম্বর" autocomplete="off" autocapitalize="characters" autocorrect="off"><button class="eye" type="button" id="togglePassport" hidden tabindex="-1" aria-label="পাসপোর্ট নম্বর দেখান">দেখুন</button></div></div></div><section id="recentSuggestions" class="suggestion-panel hidden" aria-label="আগে চেক করা নম্বর"><div class="suggestion-heading"><strong>আগে চেক করা নম্বর</strong><button id="clearRecents" class="clear-recents" type="button">সব মুছুন</button></div><div id="recentSuggestionsList" class="suggestion-list"></div><p class="suggestion-note">এই ব্রাউজারে রাখা সর্বশেষ ৮টি নম্বরের জোড়া</p></section></div><div class="actions"><button type="button" class="btn secondary" id="newApplication">ঘর খালি করুন</button><button class="btn primary" type="submit" id="checkBtn">ক্যাপচা প্রস্তুত করুন</button></div><p class="status-line" id="formFeedback" role="status"></p></form></section><section id="reviewStage" class="card review-card hidden"><div class="panel-heading"><span class="panel-icon" aria-hidden="true">✓</span><div><h2>ক্যাপচা ঠিক আছে কি না দেখুন</h2><p>ছবির সঙ্গে লেখা মিলিয়ে নিন। ভুল হলে ঠিক করুন।</p></div></div><div class="review-summary"><span>BGD: <strong id="reviewApplication"></strong></span><span>Passport: <strong id="reviewPassport"></strong></span><button type="button" class="edit" id="editDetails">তথ্য বদলান</button></div><form id="captchaForm"><div id="captchaPanel"><div class="captcha-sources" id="captchaSources"></div></div><div class="actions"><button class="btn primary" type="submit" id="confirmBtn">ঠিক আছে, ফলাফল দেখুন</button></div><p class="status-line" id="reviewFeedback" role="status"></p></form></section><section id="resultStage" class="result-window hidden" aria-labelledby="resultHeading"><div class="result-intro"><div><h2 id="resultHeading">আপনার আবেদনের ফলাফল</h2><p>ভিসার সিদ্ধান্ত ও পাসপোর্টের অগ্রগতি</p></div><div class="result-actions"><button type="button" class="btn secondary" id="resultNewApplication">BGD / পাসপোর্ট বদলান</button><button type="button" class="btn primary" id="saveResults" disabled>↓ ছবি সেভ করুন</button></div></div><section class="results" id="resultsSection" aria-label="চেকের ফলাফল" aria-live="polite"><article class="card result-card" id="visaResult"></article><article class="card result-card" id="ivacResult"></article></section><p id="saveFeedback" class="status-line" role="status"></p><div class="retry-row"><button class="btn secondary hidden" id="retryCaptcha" type="button">আবার চেক করুন</button></div></section></div><footer class="footer">VisaDesk · সরকারি ওয়েবসাইট নয়</footer></main><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js" defer></script><script>
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sourceInfo={visa:{name:'Indian Visa Online',url:'https://indianvisaonline.gov.in/visa/StatusEnquiry'},ivac:{name:'IVAC',url:'https://www.passtrack.net/regular_passport.php'}};
@@ -485,6 +619,136 @@ function deliveryProgress(r){
  const supplied=steps!==null,done=supplied?steps.filter(s=>s.done).length:null;
  return {supplied,steps,done,percent:done===null?null:done*25,currentIndex:delivered?3:deliveryStages.indexOf(r?.stage)};
 }
+
+/* A tiny shared document glyph keeps all four scenes visually consistent. */
+const passportGlyph = `<g class="scene-passport">
+  <rect x="-17" y="-24" width="34" height="48" rx="5" fill="#086c65"/>
+  <rect x="-14" y="-21" width="28" height="42" rx="3" fill="none" stroke="#bce2c6" stroke-width="1" opacity=".48"/>
+  <path d="M-10 -14h20" stroke="#d8bf77" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="0" cy="-1" r="9" fill="none" stroke="#e8cb82" stroke-width="1.7"/>
+  <path d="M-9 -1H9M0 -10C-6 -4 -6 4 0 8M0 -10C6 -4 6 4 0 8M-11 14h22" stroke="#e8cb82" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+  <path class="done-passport-shine" d="M12 -18v7M9 -14h7" stroke="#fff2bd" stroke-width="1.5" stroke-linecap="round"/>
+</g>`;
+
+const sceneReady = `<svg class="dsc dsc-ready" viewBox="0 0 480 260" aria-hidden="true" focusable="false">
+ <defs><linearGradient id="readyWindow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d8f6ee"/><stop offset="1" stop-color="#eff3ff"/></linearGradient><linearGradient id="readyDesk" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f6fcfa"/><stop offset="1" stop-color="#d5e8e8"/></linearGradient></defs>
+ <ellipse class="scene-backdrop" cx="240" cy="128" rx="205" ry="114"/>
+ <circle class="scene-glow" cx="386" cy="64" r="55"/><circle class="scene-glow" cx="86" cy="161" r="38"/>
+ <path d="M106 187V61Q106 40 127 40H357Q378 40 378 61V187" fill="url(#readyWindow)" stroke="#a0d6d0" stroke-width="2" opacity=".8"/>
+ <path d="M106 93H378M241 41v147" stroke="#a0d6d0" stroke-width="2" opacity=".6"/>
+ <rect x="216" y="28" width="77" height="24" rx="12" fill="#168f83"/><text x="254.5" y="44" text-anchor="middle" fill="white" font-family="DM Sans, sans-serif" font-size="11" font-weight="700" letter-spacing="1">IVAC DESK</text>
+ <circle cx="355" cy="83" r="11" fill="#fff" opacity=".65"/><path d="M355 77v6l4 2" fill="none" stroke="#50aaa4" stroke-width="1.6" stroke-linecap="round"/>
+ <ellipse class="scene-floor" cx="243" cy="238" rx="194" ry="12"/>
+ <g class="scene-ready-loop">
+  <g class="ready-agent">
+   <path d="M127 201v-34c0-27 9-37 30-37 22 0 31 14 31 37v34" fill="#2baf9b"/>
+   <path d="M152 134l13 22-6 38-8-38z" fill="#ebf9ef"/><path d="M156 134l5 12-5 9-5-10z" fill="#126c7e"/>
+   <rect x="142" y="121" width="22" height="18" rx="9" fill="#c78d6b"/>
+   <circle cx="153" cy="101" r="24" fill="#eab58d"/><path d="M130 99q-7-32 22-34 30 1 25 34l-6-14q-18 6-37-1z" fill="#24344a"/>
+   <circle cx="147" cy="104" r="1.9" fill="#25364c"/><circle cx="161" cy="104" r="1.9" fill="#25364c"/>
+   <path d="M148 114q7 5 13 0" fill="none" stroke="#995c52" stroke-width="1.8" stroke-linecap="round"/>
+   <g class="ready-agent-arm"><path d="M174 151l14 49" stroke="#219d91" stroke-width="16" stroke-linecap="round"/><circle cx="188" cy="200" r="8" fill="#eab58d"/></g>
+   <rect x="121" y="154" width="17" height="50" rx="8" fill="#219d91"/><circle cx="129" cy="203" r="8" fill="#eab58d"/>
+   <rect x="142" y="170" width="28" height="12" rx="5" fill="#fff" opacity=".26"/>
+  </g>
+  <g class="ready-customer-cheer">
+   <path d="M308 208v-38c0-27 12-40 37-40 25 0 38 13 38 40v38" fill="#6b77d9"/>
+   <rect x="334" y="119" width="22" height="20" rx="9" fill="#ad755c"/>
+   <circle cx="345" cy="102" r="24" fill="#dc9d79"/><path d="M321 97q-3-34 28-33 25 0 23 31-15-5-19-16-10 18-32 18" fill="#262e48"/>
+   <circle cx="337" cy="105" r="1.8" fill="#25263e"/><circle cx="352" cy="105" r="1.8" fill="#25263e"/>
+   <path d="M338 115q7 7 14 0" fill="none" stroke="#925644" stroke-width="1.8" stroke-linecap="round"/>
+   <g class="ready-visitor-arm"><path d="M317 149l-12 51" stroke="#6574d7" stroke-width="16" stroke-linecap="round"/><circle cx="305" cy="200" r="8" fill="#dc9d79"/></g>
+   <path d="M374 151l10 49" stroke="#6574d7" stroke-width="16" stroke-linecap="round"/><circle cx="384" cy="200" r="8" fill="#dc9d79"/>
+   <path d="M334 133h21" stroke="#a9bdff" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <path class="ready-guide" d="M204 146Q243 125 280 142" stroke="#168f83" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <g class="ready-passport"><g transform="translate(192 184) rotate(-4)">${passportGlyph}</g></g>
+  <g class="ready-sparkles" stroke="#f8b952" stroke-width="3" stroke-linecap="round" fill="none"><path d="M267 93v13m-6.5-6.5h13"/><path d="M296 132v10m-5-5h10"/><path d="M225 99v8m-4-4h8"/></g>
+  <g class="ready-status-bubble"><circle cx="415" cy="74" r="21" fill="#158b71"/><path d="M405 74l7 7 14-15" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>
+ </g>
+ <path d="M71 209H413" stroke="#8dbcb5" stroke-width="4" stroke-linecap="round"/>
+ <rect x="83" y="211" width="322" height="30" rx="12" fill="url(#readyDesk)" stroke="#a7cbc5" stroke-width="1.5"/>
+ <rect x="110" y="216" width="268" height="6" rx="3" fill="#fff" opacity=".5"/>
+ <circle class="scene-glint" cx="81" cy="53" r="3" fill="#f3b75c"/><circle class="scene-glint" cx="409" cy="147" r="3.5" fill="#55c6aa"/>
+</svg>`;
+
+const sceneDone = `<svg class="dsc dsc-done" viewBox="0 0 480 260" aria-hidden="true" focusable="false">
+ <defs><linearGradient id="doneGlow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d3f5e7"/><stop offset="1" stop-color="#e2e8ff"/></linearGradient></defs>
+ <ellipse class="scene-backdrop" cx="247" cy="133" rx="205" ry="116"/>
+ <circle cx="251" cy="126" r="100" fill="url(#doneGlow)" opacity=".85"/>
+ <circle cx="247" cy="132" r="82" fill="none" stroke="#55bda8" stroke-dasharray="2 12" stroke-width="2" opacity=".6"/>
+ <ellipse class="scene-floor" cx="250" cy="238" rx="100" ry="9"/>
+ <g class="done-confetti" fill="#65aee4"><rect x="94" y="65" width="8" height="15" rx="2" transform="rotate(26 98 73)"/><circle cx="397" cy="155" r="5"/></g>
+ <g class="done-confetti" fill="#f0b854"><path d="M134 36l9 11-14 3z"/><rect x="376" y="105" width="9" height="16" rx="2" transform="rotate(-20 380 112)"/></g>
+ <g class="done-confetti" fill="#8c88ea"><circle cx="80" cy="169" r="6"/><path d="M390 45l12 7-6 10-12-7z"/></g>
+ <g class="done-confetti" fill="#4fbfae"><rect x="164" y="26" width="9" height="12" rx="2" transform="rotate(-24 168 32)"/><circle cx="348" cy="205" r="5"/></g>
+ <g class="done-confetti" fill="#ee907d"><path d="M106 120l6 9-12 1z"/><path d="M317 37l8 13-14 1z"/></g>
+ <g class="done-character"><g class="done-body">
+   <path d="M213 234v-67c0-27 11-42 38-42 27 0 40 14 40 42v67" fill="#6078dc"/>
+   <path d="M216 234v-38m72 38v-38" stroke="#425aa6" stroke-width="7" stroke-linecap="round"/>
+   <rect x="239" y="117" width="24" height="23" rx="10" fill="#bd8569"/>
+   <circle cx="251" cy="94" r="28" fill="#e7ac8a"/>
+   <path d="M223 92q-5-41 29-40 32 1 28 40-11-7-16-18-9 15-41 18" fill="#29334c"/>
+   <circle cx="241" cy="99" r="2" fill="#29334c"/><circle cx="260" cy="99" r="2" fill="#29334c"/>
+   <path d="M239 109q12 11 24 0" fill="none" stroke="#9c5850" stroke-width="2.5" stroke-linecap="round"/>
+   <path d="M224 158l-15 50" stroke="#5771cf" stroke-width="18" stroke-linecap="round"/><circle cx="209" cy="208" r="9" fill="#e7ac8a"/>
+   <g class="done-arm"><path d="M275 149l13 52" stroke="#5771cf" stroke-width="18" stroke-linecap="round"/>
+    <circle cx="288" cy="201" r="9" fill="#e7ac8a"/>
+    <g transform="translate(288 205) rotate(8) scale(.95)">${passportGlyph}</g>
+   </g>
+   <path d="M238 152h24" stroke="#a5b9ff" stroke-width="3" stroke-linecap="round"/>
+ </g></g>
+ <g class="done-badge"><circle class="done-halo" cx="368" cy="78" r="30" fill="none" stroke="#1ca984" stroke-width="3"/><circle cx="368" cy="78" r="30" fill="#16966f" stroke="#b0efcf" stroke-width="4"/>
+  <path class="done-check" d="M353 78l11 11 20-22" pathLength="1" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+ </g>
+ <g class="scene-glint" fill="#f2bd58"><path d="M124 181l5 11 12 5-12 4-5 12-4-12-11-4 11-5z"/></g>
+ <g class="scene-glint" fill="#47bfac"><path d="M363 176l3 8 9 3-9 3-3 8-3-8-9-3 9-3z"/></g>
+ <rect x="122" y="215" width="65" height="22" rx="11" fill="#fff" opacity=".92"/><text x="154.5" y="230" fill="#168760" text-anchor="middle" font-family="DM Sans, sans-serif" font-weight="700" font-size="11">DELIVERED</text>
+</svg>`;
+
+const sceneReceived = `<svg class="dsc dsc-received" viewBox="0 0 480 260" aria-hidden="true" focusable="false">
+ <ellipse class="scene-backdrop" cx="241" cy="126" rx="201" ry="111"/><circle class="scene-glow" cx="366" cy="68" r="63"/>
+ <ellipse class="scene-floor" cx="240" cy="230" rx="170" ry="10"/>
+ <rect x="97" y="98" width="288" height="121" rx="22" fill="#e1eeff" stroke="#a1c6df" stroke-width="2"/>
+ <rect x="120" y="115" width="240" height="84" rx="11" fill="#f6fbff"/>
+ <path d="M122 171h236" stroke="#b3d2dd" stroke-width="2"/>
+ <g class="received-envelope"><rect x="191" y="78" width="98" height="76" rx="10" fill="#fff" stroke="#7abac7" stroke-width="2.5"/>
+  <path d="M202 91l38 32 38-32" stroke="#84bbc8" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="208" y="131" width="65" height="6" rx="3" fill="#e8f4f3"/>
+ </g>
+ <path d="M154 162h172l12 37H142z" fill="#7eaeca"/><path d="M164 165h152l5 14H159z" fill="#eaf5fb"/>
+ <g class="received-stamp"><rect x="299" y="82" width="37" height="29" rx="8" fill="#4a86b7"/><rect x="305" y="66" width="25" height="26" rx="6" fill="#285d91"/><rect x="296" y="106" width="43" height="11" rx="4" fill="#326fa3"/></g>
+ <g class="received-check"><circle cx="370" cy="77" r="24" fill="#27a78e"/><path d="M359 77l8 9 15-17" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+ <circle class="scene-glint" cx="94" cy="82" r="4" fill="#71b6d4"/><circle class="scene-glint" cx="391" cy="145" r="4" fill="#f1b95d"/>
+</svg>`;
+
+const sceneProcessing = `<svg class="dsc dsc-processing" viewBox="0 0 480 260" aria-hidden="true" focusable="false">
+ <defs><linearGradient id="processingGlass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#dce6ff"/><stop offset="1" stop-color="#d4f4f5"/></linearGradient></defs>
+ <ellipse class="scene-backdrop" cx="244" cy="130" rx="204" ry="111"/><circle class="scene-glow" cx="380" cy="85" r="65"/>
+ <ellipse class="scene-floor" cx="245" cy="238" rx="172" ry="9"/>
+ <rect x="95" y="52" width="280" height="159" rx="24" fill="url(#processingGlass)" stroke="#9da9e7" stroke-width="2"/>
+ <rect x="116" y="70" width="238" height="126" rx="12" fill="#f8fbff"/>
+ <path d="M136 88h87M136 99h66" stroke="#bac5e6" stroke-width="5" stroke-linecap="round"/>
+ <g class="process-paper"><rect x="180" y="103" width="110" height="84" rx="7" fill="#fff" stroke="#a6cbd9" stroke-width="2"/><rect x="195" y="117" width="77" height="7" rx="3" fill="#c4d4ed"/><rect x="195" y="134" width="55" height="6" rx="3" fill="#d8e4f5"/><rect x="195" y="150" width="70" height="6" rx="3" fill="#d8e4f5"/><rect x="195" y="166" width="44" height="6" rx="3" fill="#d8e4f5"/></g>
+ <g class="process-beam"><rect x="172" y="103" width="127" height="6" rx="3" fill="#27bfcb" opacity=".75"/><rect x="175" y="102" width="121" height="9" rx="4" fill="#27bfcb" opacity=".16"/></g>
+ <g class="process-orbit"><circle cx="355" cy="118" r="30" fill="none" stroke="#788be6" stroke-width="4" stroke-dasharray="12 12"/><circle cx="355" cy="88" r="6" fill="#40b7c1"/></g>
+ <circle class="process-pulse" cx="355" cy="118" r="16" fill="#e9edff"/><path d="M347 118h16m-8-8v16" stroke="#657bd9" stroke-width="3" stroke-linecap="round"/>
+ <rect x="201" y="211" width="70" height="8" rx="4" fill="#92a9d0"/>
+ <circle class="scene-glint" cx="110" cy="35" r="4" fill="#78b9d8"/><circle class="scene-glint" cx="401" cy="184" r="4" fill="#e9b55f"/>
+</svg>`;
+
+function deliveryScene(index){
+ const info=[
+  [sceneReceived,'delivery-scene--received','RECEIVED AT CENTER','আবেদন গ্রহণ করা হয়েছে','পাসপোর্ট ও আবেদনটি কেন্দ্রে গ্রহণ করা হয়েছে। পরবর্তী ধাপে প্রক্রিয়া শুরু হবে।'],
+  [sceneProcessing,'delivery-scene--processing','PROCESS INITIATED','আবেদন যাচাই চলছে','আবেদনের কাজ শুরু হয়েছে। নতুন স্ট্যাটাস এলে এখানে অগ্রগতি দেখা যাবে।'],
+  [sceneReady,'delivery-scene--ready','READY FOR DELIVERY','পাসপোর্ট সংগ্রহের জন্য প্রস্তুত','পাসপোর্ট সংগ্রহের সময় এবং নিয়ম জানতে SMS বা IVAC-এর নির্দেশনা অনুসরণ করুন।'],
+  [sceneDone,'delivery-scene--done','DELIVERY COMPLETE','পাসপোর্ট হস্তান্তর সম্পন্ন','IVAC-এর সর্বশেষ তথ্য অনুযায়ী পাসপোর্ট হস্তান্তর সম্পন্ন হয়েছে।']
+ ][index];
+ if(!info)return '';
+ const [art,mod,tag,title,description]=info;
+ return `<div class="delivery-scene ${mod}">${art}<div class="delivery-scene-text"><span class="delivery-scene-tag">${tag}</span><strong>${title}</strong><p>${description}</p></div></div>`;
+}
+
 function renderDelivery(r){
  const {supplied,steps,done,percent,currentIndex}=deliveryProgress(r);
  const count=done===null?'সম্পন্ন ধাপের তালিকা পাওয়া যায়নি':done.toLocaleString('bn-BD')+' / ৪ ধাপ সম্পন্ন';
@@ -493,7 +757,7 @@ function renderDelivery(r){
  const milestones=supplied?'<ol class="delivery-milestones" aria-label="পাসপোর্টের চার ধাপ">'+deliveryLabels.map((_,i)=>{const complete=steps[i].done,isCurrent=i===currentIndex;return '<li class="'+(complete?'done':'pending')+(isCurrent?' current':'')+'"'+(isCurrent?' aria-current="step"':'')+'><b aria-hidden="true">'+(complete?'✓':(i+1).toLocaleString('bn-BD'))+'</b><span>'+deliveryShortTitles[i]+'</span>'+(isCurrent?'<small>বর্তমান ধাপ</small>':'')+'</li>';}).join('')+'</ol>':'';
  const bar=percent===null?'':'<div class="progress-track" role="progressbar" aria-label="ডেলিভারির সম্পন্ন ধাপ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+percent+'" aria-valuetext="'+count+' — '+percent.toLocaleString('bn-BD')+'%"><span style="width:'+percent+'%"></span><div class="progress-dividers" aria-hidden="true"><i></i><i></i><i></i></div></div>';
  const cards='<div class="delivery-steps-heading">চারটি ধাপের অবস্থা</div><ol class="delivery-step-cards" aria-label="ডেলিভারির চার ধাপের বিস্তারিত">'+deliveryLabels.map((_,i)=>{const complete=supplied&&steps[i].done,isCurrent=i===currentIndex;const state=complete?'done':isCurrent?'current':'pending';const label=complete?'সম্পন্ন':isCurrent?'বর্তমান':supplied?'অপেক্ষায়':'তথ্য নেই';const caption=(complete||isCurrent?['আবেদন কেন্দ্রে গ্রহণ করা হয়েছে','আবেদনের কাজ শুরু হয়েছে','পাসপোর্ট সংগ্রহ করা যাবে','পাসপোর্ট দেওয়া হয়েছে']:supplied?['কেন্দ্রে গ্রহণের অপেক্ষায়','প্রক্রিয়া শুরুর অপেক্ষায়','প্রস্তুত হলে পাসপোর্ট সংগ্রহ করা যাবে','পাসপোর্ট হস্তান্তরের অপেক্ষায়']:['আবেদন কেন্দ্রে গ্রহণের ধাপ','আবেদনের কাজ শুরুর ধাপ','পাসপোর্ট সংগ্রহের প্রস্তুতির ধাপ','পাসপোর্ট হস্তান্তরের ধাপ'])[i];return '<li class="delivery-step-card '+state+(isCurrent?' current-step':'')+'"><span class="delivery-step-number" aria-hidden="true">'+(i+1).toLocaleString('bn-BD')+'</span><div class="delivery-step-body"><div class="delivery-step-top"><strong>'+deliveryTitles[i]+'</strong><span class="delivery-badge '+state+'">'+label+'</span></div><p class="delivery-step-caption">'+caption+'</p></div></li>';}).join('')+'</ol>';
- return '<section class="delivery-tracker" aria-label="IVAC Delivery Tracker"><div class="delivery-heading"><span class="parcel-icon" aria-hidden="true">▣</span><h4><span>IVAC</span> ট্র্যাকার</h4></div><div class="delivery-progress'+(done===4?' all-complete':'')+'"><div class="delivery-overview"><div><strong class="delivery-progress-label">ডেলিভারির অগ্রগতি</strong><p class="delivery-count">'+count+'</p></div>'+(percent===null?'':'<div class="delivery-percentage"><b>'+percent.toLocaleString('bn-BD')+'<span>%</span></b><small>ধাপ সম্পন্ন</small></div>')+'</div>'+bar+milestones+'<div class="delivery-phase"><span class="delivery-phase-label">বর্তমান অবস্থা</span><strong>'+esc(title)+'</strong></div>'+(next?'<p class="delivery-next">'+esc(next)+'</p>':'')+'</div>'+cards+'</section>';
+ return '<section class="delivery-tracker" aria-label="IVAC Delivery Tracker"><div class="delivery-heading"><span class="parcel-icon" aria-hidden="true">▣</span><h4><span>IVAC</span> ট্র্যাকার</h4></div>'+deliveryScene(currentIndex)+'<div class="delivery-progress'+(done===4?' all-complete':'')+'"><div class="delivery-overview"><div><strong class="delivery-progress-label">ডেলিভারির অগ্রগতি</strong><p class="delivery-count">'+count+'</p></div>'+(percent===null?'':'<div class="delivery-percentage"><b>'+percent.toLocaleString('bn-BD')+'<span>%</span></b><small>ধাপ সম্পন্ন</small></div>')+'</div>'+bar+milestones+'<div class="delivery-phase"><span class="delivery-phase-label">বর্তমান অবস্থা</span><strong>'+esc(title)+'</strong></div>'+(next?'<p class="delivery-next">'+esc(next)+'</p>':'')+'</div>'+cards+'</section>';
 }
 async function readBrowserCaptcha(source,data){
  const job=ocrQueue.then(async()=>{
@@ -782,4 +1046,9 @@ const sync=()=>{copyBtn.disabled=save.disabled;if(shareBtn)shareBtn.disabled=sav
 new MutationObserver(sync).observe(save,{attributes:true,attributeFilter:['disabled']});sync();
 save.addEventListener('click',()=>setTimeout(()=>{if($('saveFeedback').textContent.includes('প্রস্তুত'))toast('ছবি ডাউনলোড হচ্ছে')},1500));
 })();
+</script><script>
+(function(){const host=document.getElementById('resultsSection');if(!host||!('IntersectionObserver'in window))return;
+const io=new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle('is-paused',!e.isIntersecting)),{threshold:.05});
+const scan=()=>host.querySelectorAll('.delivery-scene:not([data-watch])').forEach(el=>{el.dataset.watch='1';io.observe(el)});
+new MutationObserver(scan).observe(host,{childList:true,subtree:true});scan();})();
 </script></body></html>
