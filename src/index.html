@@ -544,7 +544,215 @@ html{scroll-behavior:smooth}
  .done-arm{transform:rotate(-116deg)!important}.done-check{stroke-dashoffset:0!important}
 }
 
-</style></head><body data-theme="dark"><main class="shell" id="app" data-phase="entry"><header class="header"><a class="brand" href="/" aria-label="VisaDesk"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span>Visa<small>Desk</small></a><div class="header-actions"><span class="header-note">ভিসা ও পাসপোর্ট ট্র্যাকার</span><button type="button" class="theme-toggle" id="themeToggle" aria-pressed="true" aria-label="দিনের মোড চালু করুন"><span id="themeIcon" aria-hidden="true">☀</span><span id="themeLabel">দিনের মোড</span></button></div></header><section class="hero" id="introHero"><span class="eyebrow">VISA & PASSPORT TRACKING</span></section><div class="flow-shell"><nav id="flowSteps" class="stepper" aria-label="চেক করার ধাপ"><div class="flow-step active" id="step-entry"><b>১</b> আবেদনের তথ্য</div><div class="flow-step" id="step-review"><b>২</b> ক্যাপচা যাচাই</div><div class="flow-step" id="step-result"><b>৩</b> ফলাফল</div></nav><section class="operation-panel hidden" id="operationPanel" aria-live="polite" aria-label="চেক করার অগ্রগতি"><div class="operation-icon" id="operationIcon" aria-hidden="true">↻</div><div class="operation-content"><div class="operation-top"><strong id="operationTitle"></strong><span id="operationCount"></span></div><p id="operationMessage"></p><div class="operation-track" id="operationTrack" role="progressbar" aria-label="সম্পন্ন চেকের কাজ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="operationFill" style="width:0%"></span></div></div></section><section id="entryStage" class="card form-card"><div class="panel-heading"><span class="panel-icon" aria-hidden="true">▤</span><div><h2>আবেদনের তথ্য দিন</h2><p>আবেদনপত্র ও পাসপোর্ট অনুযায়ী নম্বর লিখুন।</p></div></div><form id="trackingForm"><div class="fields-wrap" id="fieldsWrap"><div class="fields"><div class="field"><label for="applicationId">BGD / আবেদন নম্বর</label><input id="applicationId" aria-controls="recentSuggestions" aria-expanded="false" type="text" required pattern="BGD[A-Za-z0-9]{7,25}" maxlength="28" placeholder="BGD দিয়ে শুরু হওয়া নম্বর" autocomplete="off" spellcheck="false" autocapitalize="characters" autocorrect="off"></div><div class="field"><label for="passportNo">পাসপোর্ট নম্বর</label><div class="input-wrap"><input id="passportNo" aria-controls="recentSuggestions" aria-expanded="false" type="text" required pattern="[A-Za-z0-9]{5,20}" maxlength="20" placeholder="পাসপোর্টে থাকা নম্বর" autocomplete="off" autocapitalize="characters" autocorrect="off"><button class="eye" type="button" id="togglePassport" hidden tabindex="-1" aria-label="পাসপোর্ট নম্বর দেখান">দেখুন</button></div></div></div><section id="recentSuggestions" class="suggestion-panel hidden" aria-label="আগে চেক করা নম্বর"><div class="suggestion-heading"><strong>আগে চেক করা নম্বর</strong><button id="clearRecents" class="clear-recents" type="button">সব মুছুন</button></div><div id="recentSuggestionsList" class="suggestion-list"></div><p class="suggestion-note">এই ব্রাউজারে রাখা সর্বশেষ ৮টি নম্বরের জোড়া</p></section></div><div class="actions"><button type="button" class="btn secondary" id="newApplication">ঘর খালি করুন</button><button class="btn primary" type="submit" id="checkBtn">ক্যাপচা প্রস্তুত করুন</button></div><p class="status-line" id="formFeedback" role="status"></p></form></section><section id="reviewStage" class="card review-card hidden"><div class="panel-heading"><span class="panel-icon" aria-hidden="true">✓</span><div><h2>ক্যাপচা ঠিক আছে কি না দেখুন</h2><p>ছবির সঙ্গে লেখা মিলিয়ে নিন। ভুল হলে ঠিক করুন।</p></div></div><div class="review-summary"><span>BGD: <strong id="reviewApplication"></strong></span><span>Passport: <strong id="reviewPassport"></strong></span><button type="button" class="edit" id="editDetails">তথ্য বদলান</button></div><form id="captchaForm"><div id="captchaPanel"><div class="captcha-sources" id="captchaSources"></div></div><div class="actions"><button class="btn primary" type="submit" id="confirmBtn">ঠিক আছে, ফলাফল দেখুন</button></div><p class="status-line" id="reviewFeedback" role="status"></p></form></section><section id="resultStage" class="result-window hidden" aria-labelledby="resultHeading"><div class="result-intro"><div><h2 id="resultHeading">আপনার আবেদনের ফলাফল</h2><p>ভিসার সিদ্ধান্ত ও পাসপোর্টের অগ্রগতি</p></div><div class="result-actions"><button type="button" class="btn secondary" id="resultNewApplication">BGD / পাসপোর্ট বদলান</button><button type="button" class="btn primary" id="saveResults" disabled>↓ ছবি সেভ করুন</button></div></div><section class="results" id="resultsSection" aria-label="চেকের ফলাফল" aria-live="polite"><article class="card result-card" id="visaResult"></article><article class="card result-card" id="ivacResult"></article></section><p id="saveFeedback" class="status-line" role="status"></p><div class="retry-row"><button class="btn secondary hidden" id="retryCaptcha" type="button">আবার চেক করুন</button></div></section></div><footer class="footer">VisaDesk · সরকারি ওয়েবসাইট নয়</footer></main><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js" defer></script><script>
+
+/* ===== UI v6 — compact, responsive, content-first result dashboard ===== */
+:root { --compact-gap: 12px; }
+.shell { max-width:1320px; padding:0 clamp(14px,2.3vw,34px) 18px; }
+.header,[data-phase="result"] .header { height:60px; margin-top:9px; top:8px; border-radius:17px; }
+.brand {font-size:22px;}
+.brand small {font-size:22px;}
+.brand-icon {width:35px;height:35px;border-radius:11px;}
+.header .theme-toggle {min-height:37px;padding:7px 11px;}
+.footer {margin-top:18px; padding-top:12px;}
+.hero {padding:18px 0 12px;}
+.eyebrow {font-size:10px;padding:7px 12px;}
+.stepper {margin-bottom:16px;}
+.form-card,.review-card {padding:clamp(18px,2.6vw,26px);}
+.form-card .panel-heading,.review-card .panel-heading {margin-bottom:15px;}
+.panel-heading h2 {font-size:19px;}
+.panel-icon {width:42px;height:42px;}
+.fields {gap:14px;}
+.field input {min-height:50px;}
+.actions {margin-top:16px;}
+
+/* Large screens: use horizontal space instead of endlessly stacking cards. */
+[data-phase="result"] .flow-shell {max-width:100%;}
+.result-window {border-radius:23px;overflow:hidden;}
+.result-window .result-intro {padding:15px 20px;gap:10px;border-radius:23px 23px 0 0;}
+.result-window .result-intro h2 {font-size:20px;line-height:1.45;}
+.result-window .result-intro p {margin-top:2px;font-size:11.5px;line-height:1.55;}
+.result-window .result-actions {gap:6px;}
+.result-window .result-actions .btn {min-height:36px;padding:7px 10px;font-size:11px;border-radius:10px;}
+.result-banner {padding:10px 18px 5px;gap:10px;}
+.result-banner .tile {min-height:58px;gap:10px;padding:8px 12px;border-radius:13px;}
+.result-banner .tile-icon {width:38px;height:38px;flex-basis:38px;font-size:19px;border-radius:12px;}
+.result-banner .ring {width:41px;height:41px;flex:0 0 41px;}
+.result-banner .ring:before {inset:4px;}
+.result-banner .ring span {font-size:11px;}
+.result-banner .tile small {font-size:10px;}
+.result-banner .tile strong {font-size:12.5px;line-height:1.5;}
+.result-window .results {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;align-items:stretch;}
+.result-window .result-card {display:flex;flex-direction:column;gap:0;padding:13px 18px 12px;min-width:0;}
+.result-window .result-card+.result-card {border-top:0;border-left:1px solid var(--line);}
+.result-window .result-top {margin-bottom:8px;gap:6px;}
+.result-window .result-title {font-size:14px;gap:8px;}
+.result-window .result-title:before {width:6px;height:6px;box-shadow:0 0 0 3px var(--accent-soft);}
+.result-window .chip {font-size:10px;padding:4px 8px;}
+.result-window .result-main {gap:10px;padding:10px 12px;border-radius:12px;min-height:68px;}
+.result-window .result-main h3 {font-size:16px;line-height:1.5;margin:0 0 2px;}
+.result-window .source-original {font-size:11.5px;line-height:1.5;}
+.result-window .status-artwork {width:46px;height:46px;flex:0 0 46px;border-radius:13px;}
+.result-window .status-artwork svg {width:39px;height:39px;}
+.result-window .result-main p {font-size:11px;line-height:1.55;margin-top:3px;}
+.result-window .status-summary {margin:8px 0 0;padding:8px 10px;font-size:12px;line-height:1.65;border-radius:10px;flex:1;}
+.result-window .collection-note-title {font-size:12px;margin-bottom:2px;}
+.result-window .result-meta {margin-top:7px;padding:6px 10px;font-size:10px;border-radius:9px;}
+.result-window .result-meta strong {font-size:11px;}
+.result-window .busy-label {min-height:86px;}
+.result-window .result-main.error {min-height:90px;}
+.result-window .result-main.error p {font-size:12px;}
+
+/* Delivery dashboard: one wide row, with full history behind an accessible disclosure. */
+.delivery-dock:empty {display:none;}
+.delivery-dock {padding:0 18px 14px;}
+.delivery-dock .delivery-tracker {display:grid;grid-template-columns:minmax(0,1.07fr) minmax(0,.93fr);grid-template-areas:'heading heading' 'scene progress' 'details details';gap:8px 12px;margin:0;padding:10px 0 0;border-top:1px solid var(--line);}
+.delivery-dock .delivery-heading {grid-area:heading;margin:0;}
+.delivery-dock .delivery-heading h4 {font-size:14px;}
+.delivery-dock .parcel-icon {font-size:16px;}
+.delivery-dock .delivery-scene {grid-area:scene;gap:9px;min-height:160px;margin:0;padding:10px 12px;border-radius:14px;}
+.delivery-dock .delivery-scene .dsc {width:min(48%,205px);flex:0 0 min(48%,205px);max-height:145px;}
+.delivery-dock .delivery-scene-tag {font-size:9px;padding:2px 7px;margin-bottom:2px;}
+.delivery-dock .delivery-scene-text strong {font-size:15px;line-height:1.5;}
+.delivery-dock .delivery-scene-text p {font-size:11.5px;line-height:1.6;margin-top:3px;}
+.delivery-dock .delivery-progress {grid-area:progress;margin:0;min-height:160px;padding:11px 14px;border-radius:14px;}
+.delivery-dock .delivery-progress-label {font-size:14px;line-height:1.5;}
+.delivery-dock .delivery-count {font-size:11px;margin:2px 0 0;}
+.delivery-dock .delivery-percentage {min-width:65px;}
+.delivery-dock .delivery-percentage b {font-size:29px;line-height:1.2;letter-spacing:-1px;}
+.delivery-dock .delivery-percentage b span {font-size:17px;}
+.delivery-dock .delivery-percentage small {font-size:10px;}
+.delivery-dock .progress-track {height:9px;margin-top:10px;}
+.delivery-dock .delivery-milestones {margin:11px 0 8px;}
+.delivery-dock .delivery-milestones li {font-size:10px;line-height:1.4;}
+.delivery-dock .delivery-milestones li:before {top:12px;height:2px;}
+.delivery-dock .delivery-milestones b {width:25px;height:25px;font-size:12px;margin-bottom:5px;border-width:1px;}
+.delivery-dock .delivery-milestones small {font-size:9px;margin-top:2px;}
+.delivery-dock .delivery-phase {margin-top:8px;padding-top:7px;gap:4px 8px;}
+.delivery-dock .delivery-phase-label {font-size:10px;}
+.delivery-dock .delivery-phase strong {font-size:12px;}
+.delivery-dock .delivery-next {font-size:10px;line-height:1.5;margin-top:4px;}
+.delivery-details {grid-area:details;min-width:0;}
+.delivery-details summary {display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 13px;background:var(--subtle);border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:12px;font-weight:600;cursor:pointer;list-style:none;user-select:none;}
+.delivery-details summary::-webkit-details-marker {display:none;}
+.delivery-details summary:hover,.delivery-details summary:focus-visible {border-color:var(--accent);background:var(--accent-soft);}
+.delivery-details .details-hint {font-size:11px;color:var(--accent);font-weight:500;white-space:nowrap;}
+.delivery-details .details-chevron {display:inline-block;margin-left:4px;transition:transform .25s;}
+.delivery-details[open] .details-chevron {transform:rotate(180deg);}
+.delivery-details[open] summary {border-color:var(--accent);border-radius:10px 10px 0 0;}
+.delivery-details .delivery-steps-heading {padding:10px 4px 0;font-size:13px;}
+.delivery-details .delivery-step-cards {margin:8px 0 0;gap:9px;}
+.delivery-details .delivery-step-card {padding:12px 12px;border-radius:12px;gap:8px;}
+.delivery-details .delivery-step-number {width:29px;height:29px;font-size:13px;}
+.delivery-details .delivery-step-top strong {font-size:13px;}
+.delivery-details .delivery-step-caption {font-size:11px;line-height:1.6;}
+.delivery-details .delivery-step-top .delivery-badge {font-size:10px;padding:3px 6px;}
+.result-window>.status-line {padding:0 18px 12px;}
+.result-window .retry-row {padding:0 18px 12px;}
+
+@media (min-width:1100px) and (min-height:620px){
+ [data-phase="result"] .footer {margin-top:12px;}
+}
+@media (max-width:900px){
+ .delivery-dock .delivery-tracker{grid-template-columns:minmax(0,1fr);grid-template-areas:'heading' 'scene' 'progress' 'details';gap:9px;}
+ .delivery-dock .delivery-scene {min-height:unset;}
+ .delivery-dock .delivery-scene .dsc {max-height:155px;}
+ .delivery-dock .delivery-progress {min-height:unset;}
+ .result-window .result-main h3 {font-size:15px;}
+ .result-window .result-card {padding:12px;}
+}
+@media (max-width:650px){
+ .shell {padding:0 11px 14px;}
+ .header,[data-phase="result"] .header {height:55px;top:5px;margin-top:5px;padding:0 8px;}
+ .brand,.brand small {font-size:19px;}
+ .brand-icon {width:32px;height:32px;}
+ .theme-toggle span:first-child {font-size:17px;}
+ .result-window {border-radius:17px;}
+ .result-window .result-intro {padding:12px 12px 10px;gap:9px;border-radius:17px 17px 0 0;}
+ .result-window .result-intro h2 {font-size:17px;}
+ .result-window .result-intro p {font-size:11px;}
+ .result-window .result-actions {gap:5px;flex-wrap:wrap;}
+ .result-window .result-actions .btn {min-height:35px;padding:5px 7px;font-size:10px;flex:1 1 auto;}
+ .result-banner {grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:9px 10px 5px;}
+ .result-banner .tile {min-width:0;min-height:63px;gap:6px;padding:7px;border-radius:11px;}
+ .result-banner .tile-icon {width:29px;height:29px;flex:0 0 29px;border-radius:9px;font-size:16px;}
+ .result-banner .ring {width:32px;height:32px;flex:0 0 32px;}
+ .result-banner .ring:before {inset:3px;}
+ .result-banner .ring span {font-size:9px;}
+ .result-banner .tile small {font-size:9px;}
+ .result-banner .tile strong {font-size:10.8px;line-height:1.55;}
+ .result-window .results {grid-template-columns:1fr;}
+ .result-window .result-card {padding:11px 11px 10px;}
+ .result-window .result-card+.result-card {border-left:0;border-top:1px solid var(--line);}
+ .result-window .result-top {margin-bottom:6px;}
+ .result-window .result-title {font-size:13px;}
+ .result-window .result-main {padding:9px 10px;gap:9px;min-height:unset;}
+ .result-window .result-main h3 {font-size:15px;}
+ .result-window .status-artwork {width:42px;height:42px;flex-basis:42px;}
+ .result-window .status-artwork svg {width:35px;height:35px;}
+ .result-window .status-summary {margin-top:6px;padding:7px 9px;font-size:11.5px;line-height:1.6;}
+ .result-window .result-meta {margin-top:6px;padding:5px 9px;font-size:10px;}
+ .result-window .result-meta strong {font-size:10px;}
+ .delivery-dock {padding:0 10px 10px;}
+ .delivery-dock .delivery-tracker {padding-top:9px;gap:7px;}
+ .delivery-dock .delivery-scene {flex-direction:row;text-align:left;gap:8px;padding:9px;}
+ .delivery-dock .delivery-scene .dsc {width:43%;flex:0 0 43%;max-height:120px;}
+ .delivery-dock .delivery-scene-text strong {font-size:13px;}
+ .delivery-dock .delivery-scene-text p {font-size:10.5px;}
+ .delivery-dock .delivery-scene-tag {font-size:8px;}
+ .delivery-dock .delivery-progress {padding:9px 11px;}
+ .delivery-dock .delivery-milestones {margin:8px 0 6px;}
+ .delivery-dock .delivery-step-card {grid-template-columns:29px minmax(0,1fr);}
+ .delivery-details summary {font-size:11px;padding:8px 10px;}
+ .delivery-details .details-hint {font-size:10px;}
+ .result-window>.status-line {padding:0 10px 10px;}
+ .result-window .retry-row {padding:0 10px 10px;}
+ .footer {margin-top:10px;padding-top:9px;}
+}
+@media(max-width:360px){
+ .result-window .result-actions .btn {font-size:9px;}
+ .result-banner .tile strong {font-size:10px;}
+ .result-window .chip {font-size:9px;}
+ .delivery-dock .delivery-scene .dsc {width:39%;flex-basis:39%;}
+}
+@media(prefers-reduced-motion: reduce){
+ .delivery-details .details-chevron {transition:none;}
+}
+
+
+/* Results prioritize information once; remove duplicate status-summary tiles. */
+#resultBanner{display:none!important}
+.result-window .result-card{align-items:stretch}
+.delivery-dock .delivery-scene{display:flex;min-height:148px}
+.delivery-dock .delivery-scene .dsc{width:min(43%,220px);flex:0 0 min(43%,220px);margin:0}
+.delivery-dock .delivery-scene-text{flex:1;margin:0}
+.delivery-dock .delivery-progress{min-height:148px}
+@media(max-width:650px){
+ .delivery-dock .delivery-scene{display:flex;min-height:0}
+ .delivery-dock .delivery-scene .dsc{width:42%;flex:0 0 42%}
+ .delivery-dock .delivery-scene-text{margin:0;text-align:left}
+}
+
+/* Condense each desktop status card without clipping its explanation. */
+@media(min-width:1100px){
+ .result-window .result-card {display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);grid-template-areas:'top top' 'main summary' 'meta meta';column-gap:10px;align-content:start;}
+ .result-window .result-top {grid-area:top;}
+ .result-window .result-main {grid-area:main;min-height:84px;}
+ .result-window .status-summary {grid-area:summary;margin:0;align-content:center;}
+ .result-window .result-meta {grid-area:meta;}
+}
+/* Bring the four-step display closer to the status itself. */
+@media(min-width:901px){
+ .delivery-dock .delivery-percentage b{font-size:25px;}
+ .delivery-dock .delivery-percentage b span{font-size:15px;}
+ .delivery-dock .delivery-percentage small{font-size:9px;}
+ .delivery-dock .progress-track{margin-top:7px;}
+ .delivery-dock .delivery-milestones{margin:7px 0 5px;}
+ .delivery-dock .delivery-milestones b{width:23px;height:23px;margin-bottom:3px;}
+ .delivery-dock .delivery-milestones li:before{top:11px;}
+ .delivery-dock .delivery-milestones small{font-size:8px;margin-top:0;}
+ .delivery-dock .delivery-phase{margin-top:6px;padding-top:6px;}
+}
+</style></head><body data-theme="dark"><main class="shell" id="app" data-phase="entry"><header class="header"><a class="brand" href="/" aria-label="VisaDesk"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span>Visa<small>Desk</small></a><div class="header-actions"><span class="header-note">ভিসা ও পাসপোর্ট ট্র্যাকার</span><button type="button" class="theme-toggle" id="themeToggle" aria-pressed="true" aria-label="দিনের মোড চালু করুন"><span id="themeIcon" aria-hidden="true">☀</span><span id="themeLabel">দিনের মোড</span></button></div></header><section class="hero" id="introHero"><span class="eyebrow">VISA & PASSPORT TRACKING</span></section><div class="flow-shell"><nav id="flowSteps" class="stepper" aria-label="চেক করার ধাপ"><div class="flow-step active" id="step-entry"><b>১</b> আবেদনের তথ্য</div><div class="flow-step" id="step-review"><b>২</b> ক্যাপচা যাচাই</div><div class="flow-step" id="step-result"><b>৩</b> ফলাফল</div></nav><section class="operation-panel hidden" id="operationPanel" aria-live="polite" aria-label="চেক করার অগ্রগতি"><div class="operation-icon" id="operationIcon" aria-hidden="true">↻</div><div class="operation-content"><div class="operation-top"><strong id="operationTitle"></strong><span id="operationCount"></span></div><p id="operationMessage"></p><div class="operation-track" id="operationTrack" role="progressbar" aria-label="সম্পন্ন চেকের কাজ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="operationFill" style="width:0%"></span></div></div></section><section id="entryStage" class="card form-card"><div class="panel-heading"><span class="panel-icon" aria-hidden="true">▤</span><div><h2>আবেদনের তথ্য দিন</h2><p>আবেদনপত্র ও পাসপোর্ট অনুযায়ী নম্বর লিখুন।</p></div></div><form id="trackingForm"><div class="fields-wrap" id="fieldsWrap"><div class="fields"><div class="field"><label for="applicationId">BGD / আবেদন নম্বর</label><input id="applicationId" aria-controls="recentSuggestions" aria-expanded="false" type="text" required pattern="BGD[A-Za-z0-9]{7,25}" maxlength="28" placeholder="BGD দিয়ে শুরু হওয়া নম্বর" autocomplete="off" spellcheck="false" autocapitalize="characters" autocorrect="off"></div><div class="field"><label for="passportNo">পাসপোর্ট নম্বর</label><div class="input-wrap"><input id="passportNo" aria-controls="recentSuggestions" aria-expanded="false" type="text" required pattern="[A-Za-z0-9]{5,20}" maxlength="20" placeholder="পাসপোর্টে থাকা নম্বর" autocomplete="off" autocapitalize="characters" autocorrect="off"><button class="eye" type="button" id="togglePassport" hidden tabindex="-1" aria-label="পাসপোর্ট নম্বর দেখান">দেখুন</button></div></div></div><section id="recentSuggestions" class="suggestion-panel hidden" aria-label="আগে চেক করা নম্বর"><div class="suggestion-heading"><strong>আগে চেক করা নম্বর</strong><button id="clearRecents" class="clear-recents" type="button">সব মুছুন</button></div><div id="recentSuggestionsList" class="suggestion-list"></div><p class="suggestion-note">এই ব্রাউজারে রাখা সর্বশেষ ৮টি নম্বরের জোড়া</p></section></div><div class="actions"><button type="button" class="btn secondary" id="newApplication">ঘর খালি করুন</button><button class="btn primary" type="submit" id="checkBtn">ক্যাপচা প্রস্তুত করুন</button></div><p class="status-line" id="formFeedback" role="status"></p></form></section><section id="reviewStage" class="card review-card hidden"><div class="panel-heading"><span class="panel-icon" aria-hidden="true">✓</span><div><h2>ক্যাপচা ঠিক আছে কি না দেখুন</h2><p>ছবির সঙ্গে লেখা মিলিয়ে নিন। ভুল হলে ঠিক করুন।</p></div></div><div class="review-summary"><span>BGD: <strong id="reviewApplication"></strong></span><span>Passport: <strong id="reviewPassport"></strong></span><button type="button" class="edit" id="editDetails">তথ্য বদলান</button></div><form id="captchaForm"><div id="captchaPanel"><div class="captcha-sources" id="captchaSources"></div></div><div class="actions"><button class="btn primary" type="submit" id="confirmBtn">ঠিক আছে, ফলাফল দেখুন</button></div><p class="status-line" id="reviewFeedback" role="status"></p></form></section><section id="resultStage" class="result-window hidden" aria-labelledby="resultHeading"><div class="result-intro"><div><h2 id="resultHeading">আপনার আবেদনের ফলাফল</h2><p>ভিসার সিদ্ধান্ত ও পাসপোর্টের অগ্রগতি</p></div><div class="result-actions"><button type="button" class="btn secondary" id="resultNewApplication">BGD / পাসপোর্ট বদলান</button><button type="button" class="btn primary" id="saveResults" disabled>↓ ছবি সেভ করুন</button></div></div><section class="results" id="resultsSection" aria-label="চেকের ফলাফল" aria-live="polite"><article class="card result-card" id="visaResult"></article><article class="card result-card" id="ivacResult"></article></section><div id="deliveryDock" class="delivery-dock" aria-live="polite"></div><p id="saveFeedback" class="status-line" role="status"></p><div class="retry-row"><button class="btn secondary hidden" id="retryCaptcha" type="button">আবার চেক করুন</button></div></section></div><footer class="footer">VisaDesk · সরকারি ওয়েবসাইট নয়</footer></main><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js" defer></script><script>
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sourceInfo={visa:{name:'Indian Visa Online',url:'https://indianvisaonline.gov.in/visa/StatusEnquiry'},ivac:{name:'IVAC',url:'https://www.passtrack.net/regular_passport.php'}};
 const statusMeaning={
@@ -592,9 +800,10 @@ function statusArtwork(source,r,caution=false){
 }
 function renderResult(source){const inf=sourceInfo[source],r=current[source],error=errors[source],info=r?explain(source,r):null,caution=collectionNeedsReview();$(source+'Result').classList.toggle('collection-review',caution);$(source+'Result').classList.toggle('printed-approved',source==='visa'&&r?.stage==='granted_printed'&&!error);let markup='<div class="result-top"><div class="result-title">'+(source==='visa'?'ভিসার ফলাফল':'পাসপোর্টের অগ্রগতি')+'</div><span class="chip">'+inf.name+'</span></div>';
  if(busy&&!r&&!error)markup+='<div class="busy-label"><span class="spinner" aria-hidden="true"></span>সর্বশেষ তথ্য আনা হচ্ছে…</div>';
- else if(r){const approved=source==='visa'&&['success','granted_printed','granted_not_printed'].includes(r.stage);markup+='<div class="result-main '+esc(r.stage)+(caution?' collection-review':'')+'">'+statusArtwork(source,r,caution)+'<div class="result-status-text"><h3>'+esc(info.title)+'</h3><span class="source-original">'+esc(r.label)+'</span>'+(r.applicantName?'<p class="applicant">'+esc(r.applicantName)+'</p>':'')+'</div></div><p class="status-summary'+(caution?' collection-message':'')+'">'+(caution?'<strong class="collection-note-title">পাসপোর্ট সংগ্রহ করে যাচাই করুন</strong>':'')+esc(shortMeaning(source,r))+'</p>'+(source==='ivac'?renderDelivery(r):'')+'<div class="result-meta"><strong>'+esc(r.applicationId)+'</strong><span>'+esc(date(r.checkedAt))+'</span></div>';}
+ else if(r){const approved=source==='visa'&&['success','granted_printed','granted_not_printed'].includes(r.stage);markup+='<div class="result-main '+esc(r.stage)+(caution?' collection-review':'')+'">'+statusArtwork(source,r,caution)+'<div class="result-status-text"><h3>'+esc(info.title)+'</h3><span class="source-original">'+esc(r.label)+'</span>'+(r.applicantName?'<p class="applicant">'+esc(r.applicantName)+'</p>':'')+'</div></div><p class="status-summary'+(caution?' collection-message':'')+'">'+(caution?'<strong class="collection-note-title">পাসপোর্ট সংগ্রহ করে যাচাই করুন</strong>':'')+esc(shortMeaning(source,r))+'</p>'+'<div class="result-meta"><strong>'+esc(r.applicationId)+'</strong><span>'+esc(date(r.checkedAt))+'</span></div>';}
  else markup+='<div class="result-main error"><div class="result-symbol">!</div><div><h3>ফলাফল আনা যায়নি</h3><p>'+esc(error||'এই উৎসে আবার চেক করুন।')+'</p></div></div>';
  $(source+'Result').innerHTML=markup;
+ if(source==='ivac')$('deliveryDock').innerHTML=r&&!error?renderDelivery(r):'';
 }
 function setCaptchaNotice(source,message,reading=false,data=null){
  if(data&&sessions[source]!==data)return;
@@ -757,7 +966,7 @@ function renderDelivery(r){
  const milestones=supplied?'<ol class="delivery-milestones" aria-label="পাসপোর্টের চার ধাপ">'+deliveryLabels.map((_,i)=>{const complete=steps[i].done,isCurrent=i===currentIndex;return '<li class="'+(complete?'done':'pending')+(isCurrent?' current':'')+'"'+(isCurrent?' aria-current="step"':'')+'><b aria-hidden="true">'+(complete?'✓':(i+1).toLocaleString('bn-BD'))+'</b><span>'+deliveryShortTitles[i]+'</span>'+(isCurrent?'<small>বর্তমান ধাপ</small>':'')+'</li>';}).join('')+'</ol>':'';
  const bar=percent===null?'':'<div class="progress-track" role="progressbar" aria-label="ডেলিভারির সম্পন্ন ধাপ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+percent+'" aria-valuetext="'+count+' — '+percent.toLocaleString('bn-BD')+'%"><span style="width:'+percent+'%"></span><div class="progress-dividers" aria-hidden="true"><i></i><i></i><i></i></div></div>';
  const cards='<div class="delivery-steps-heading">চারটি ধাপের অবস্থা</div><ol class="delivery-step-cards" aria-label="ডেলিভারির চার ধাপের বিস্তারিত">'+deliveryLabels.map((_,i)=>{const complete=supplied&&steps[i].done,isCurrent=i===currentIndex;const state=complete?'done':isCurrent?'current':'pending';const label=complete?'সম্পন্ন':isCurrent?'বর্তমান':supplied?'অপেক্ষায়':'তথ্য নেই';const caption=(complete||isCurrent?['আবেদন কেন্দ্রে গ্রহণ করা হয়েছে','আবেদনের কাজ শুরু হয়েছে','পাসপোর্ট সংগ্রহ করা যাবে','পাসপোর্ট দেওয়া হয়েছে']:supplied?['কেন্দ্রে গ্রহণের অপেক্ষায়','প্রক্রিয়া শুরুর অপেক্ষায়','প্রস্তুত হলে পাসপোর্ট সংগ্রহ করা যাবে','পাসপোর্ট হস্তান্তরের অপেক্ষায়']:['আবেদন কেন্দ্রে গ্রহণের ধাপ','আবেদনের কাজ শুরুর ধাপ','পাসপোর্ট সংগ্রহের প্রস্তুতির ধাপ','পাসপোর্ট হস্তান্তরের ধাপ'])[i];return '<li class="delivery-step-card '+state+(isCurrent?' current-step':'')+'"><span class="delivery-step-number" aria-hidden="true">'+(i+1).toLocaleString('bn-BD')+'</span><div class="delivery-step-body"><div class="delivery-step-top"><strong>'+deliveryTitles[i]+'</strong><span class="delivery-badge '+state+'">'+label+'</span></div><p class="delivery-step-caption">'+caption+'</p></div></li>';}).join('')+'</ol>';
- return '<section class="delivery-tracker" aria-label="IVAC Delivery Tracker"><div class="delivery-heading"><span class="parcel-icon" aria-hidden="true">▣</span><h4><span>IVAC</span> ট্র্যাকার</h4></div>'+deliveryScene(currentIndex)+'<div class="delivery-progress'+(done===4?' all-complete':'')+'"><div class="delivery-overview"><div><strong class="delivery-progress-label">ডেলিভারির অগ্রগতি</strong><p class="delivery-count">'+count+'</p></div>'+(percent===null?'':'<div class="delivery-percentage"><b>'+percent.toLocaleString('bn-BD')+'<span>%</span></b><small>ধাপ সম্পন্ন</small></div>')+'</div>'+bar+milestones+'<div class="delivery-phase"><span class="delivery-phase-label">বর্তমান অবস্থা</span><strong>'+esc(title)+'</strong></div>'+(next?'<p class="delivery-next">'+esc(next)+'</p>':'')+'</div>'+cards+'</section>';
+ return '<section class="delivery-tracker" aria-label="IVAC Delivery Tracker"><div class="delivery-heading"><span class="parcel-icon" aria-hidden="true">▣</span><h4><span>IVAC</span> ট্র্যাকার</h4></div>'+deliveryScene(currentIndex)+'<div class="delivery-progress'+(done===4?' all-complete':'')+'"><div class="delivery-overview"><div><strong class="delivery-progress-label">ডেলিভারির অগ্রগতি</strong><p class="delivery-count">'+count+'</p></div>'+(percent===null?'':'<div class="delivery-percentage"><b>'+percent.toLocaleString('bn-BD')+'<span>%</span></b><small>ধাপ সম্পন্ন</small></div>')+'</div>'+bar+milestones+'<div class="delivery-phase"><span class="delivery-phase-label">বর্তমান অবস্থা</span><strong>'+esc(title)+'</strong></div>'+(next?'<p class="delivery-next">'+esc(next)+'</p>':'')+'</div>'+'<details class="delivery-details"><summary><span>চারটি ধাপের বিস্তারিত বিবরণ</span><span class="details-hint">বিস্তারিত দেখুন <span class="details-chevron" aria-hidden="true">⌄</span></span></summary>'+cards+'</details></section>';
 }
 async function readBrowserCaptcha(source,data){
  const job=ocrQueue.then(async()=>{
@@ -939,10 +1148,11 @@ const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 document.addEventListener('pointermove',e=>{const t=e.target.closest?.('.form-card,.review-card,.source-box,.delivery-step-card');if(!t)return;const r=t.getBoundingClientRect();t.style.setProperty('--mx',(e.clientX-r.left)+'px');t.style.setProperty('--my',(e.clientY-r.top)+'px')},{passive:true});
 document.addEventListener('pointerdown',e=>{const b=e.target.closest?.('.btn');if(!b||b.disabled||reduce)return;const r=b.getBoundingClientRect(),s=Math.max(r.width,r.height)*2,d=document.createElement('span');d.className='ripple';d.style.cssText=`width:${s}px;height:${s}px;left:${e.clientX-r.left-s/2}px;top:${e.clientY-r.top-s/2}px`;b.appendChild(d);setTimeout(()=>d.remove(),700)});
 const bn='০১২৩৪৫৬৭৮৯',toEn=s=>s.replace(/[০-৯]/g,c=>bn.indexOf(c)),toBn=n=>String(n).replace(/\d/g,d=>bn[d]);
-function countUp(el){const node=[...el.childNodes].find(n=>n.nodeType===3);if(!node||el.dataset.counted)return;const target=parseInt(toEn(node.nodeValue),10);if(isNaN(target))return;el.dataset.counted='1';if(reduce||target===0)return;const t0=performance.now(),dur=1100;(function tick(t){const p=Math.min((t-t0)/dur,1);node.nodeValue=toBn(Math.round(target*(1-Math.pow(1-p,3))));if(p<1)requestAnimationFrame(tick)})(t0)}
+function countUp(el){const node=[...el.childNodes].find(n=>n.nodeType===3);if(!node||el.dataset.counted)return;const target=parseInt(toEn(node.nodeValue),10);if(isNaN(target))return;el.dataset.counted='1';if(reduce||target===0)return;const t0=performance.now(),dur=1100;(function tick(t){const p=Math.max(0,Math.min((t-t0)/dur,1));node.nodeValue=toBn(Math.round(target*(1-Math.pow(1-p,3))));if(p<1)requestAnimationFrame(tick)})(t0)}
 function confetti(){if(reduce)return;const colors=['#5b5bf0','#14a8c4','#b05bf0','#22c58b','#f1ca7b'];for(let i=0;i<60;i++){const c=document.createElement('i');c.className='confetti';c.style.cssText=`left:${Math.random()*100}vw;background:${colors[i%5]};--dx:${(Math.random()-.5)*240}px;--rot:${Math.random()*720}deg;animation-duration:${2+Math.random()*1.6}s;animation-delay:${Math.random()*.4}s`;document.body.appendChild(c);setTimeout(()=>c.remove(),4500)}}
-let lastKey='';const rs=document.getElementById('resultsSection');
-if(rs)new MutationObserver(()=>{rs.querySelectorAll('.delivery-percentage b').forEach(countUp);const w=rs.querySelector('.status-artwork--approved,.status-artwork--delivered');const key=w?w.className+(rs.querySelector('.result-meta strong')?.textContent||''):'';if(key&&key!==lastKey){lastKey=key;confetti()}if(!key)lastKey=''}).observe(rs,{childList:true,subtree:true});
+let lastKey='';const rs=document.getElementById('resultsSection'),dock=document.getElementById('deliveryDock');
+if(rs)new MutationObserver(()=>{(dock||rs).querySelectorAll('.delivery-percentage b').forEach(countUp);const w=rs.querySelector('.status-artwork--approved,.status-artwork--delivered');const key=w?w.className+(rs.querySelector('.result-meta strong')?.textContent||''):'';if(key&&key!==lastKey){lastKey=key;confetti()}if(!key)lastKey=''}).observe(rs,{childList:true,subtree:true});
+if(dock)new MutationObserver(()=>dock.querySelectorAll('.delivery-percentage b').forEach(countUp)).observe(dock,{childList:true,subtree:true});
 })();
 </script>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -1047,7 +1257,7 @@ new MutationObserver(sync).observe(save,{attributes:true,attributeFilter:['disab
 save.addEventListener('click',()=>setTimeout(()=>{if($('saveFeedback').textContent.includes('প্রস্তুত'))toast('ছবি ডাউনলোড হচ্ছে')},1500));
 })();
 </script><script>
-(function(){const host=document.getElementById('resultsSection');if(!host||!('IntersectionObserver'in window))return;
+(function(){const host=document.getElementById('deliveryDock');if(!host||!('IntersectionObserver'in window))return;
 const io=new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle('is-paused',!e.isIntersecting)),{threshold:.05});
 const scan=()=>host.querySelectorAll('.delivery-scene:not([data-watch])').forEach(el=>{el.dataset.watch='1';io.observe(el)});
 new MutationObserver(scan).observe(host,{childList:true,subtree:true});scan();})();
