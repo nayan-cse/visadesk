@@ -200,7 +200,7 @@ input:user-invalid,select:user-invalid,textarea:user-invalid{border-color:#d9626
 </main>
 
 <section id="preview" hidden>
-<header class="preview-bar"><div><strong>প্রিভিউ তৈরি হয়েছে</strong><p>প্রিন্ট ডায়ালগে PDF হিসেবে সেভ করুন। প্রয়োজন হলে Headers and footers বন্ধ করুন।</p></div><button id="print" class="btn primary" type="button">প্রিন্ট / Save as PDF</button></header>
+<header class="preview-bar"><div><strong>প্রিভিউ তৈরি হয়েছে</strong><p>PDF ডাউনলোড করে পরে প্রিন্ট করুন।</p></div><button id="downloadPdf" class="btn primary" type="button">PDF ডাউনলোড করুন</button></header>
 <div class="desk">
 <article id="paper" lang="en">
 <h2>VISA UNDERTAKING FORM</h2>
@@ -287,7 +287,7 @@ purposePreset.addEventListener('change', () => {
 });
 const preview = document.querySelector('#preview');
 const pageTitle = document.title;
-const printButton = document.querySelector('#print');
+const downloadButton = document.querySelector('#downloadPdf');
 const dateFormat = new Intl.DateTimeFormat('en-GB', {
   day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC'
 });
@@ -336,9 +336,139 @@ form.addEventListener('submit', (event) => {
   preview.hidden = false;
   document.title = 'Visa Undertaking Form - ' + values.applicant.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
   preview.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-  printButton.focus({ preventScroll: true });
+  downloadButton.focus({ preventScroll: true });
 });
-printButton.addEventListener('click', () => window.print());
+// Draw the populated form on an A4 canvas, independently of the phone viewport.
+function buildPdf() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1190;
+  canvas.height = 1684;
+  const ctx = canvas.getContext('2d');
+  const left = 42;
+  const width = 511;
+  const paper = document.querySelector('#paper');
+
+  function wrap(text, limit) {
+    const lines = [];
+    let line = '';
+    for (const word of text.trim().split(/\s+/)) {
+      const next = line ? line + ' ' + word : word;
+      if (ctx.measureText(next).width <= limit) {
+        line = next;
+        continue;
+      }
+      if (line) lines.push(line);
+      line = '';
+      for (const char of word) {
+        if (ctx.measureText(line + char).width > limit) {
+          lines.push(line);
+          line = '';
+        }
+        line += char;
+      }
+    }
+    return [...lines, line];
+  }
+
+  function draw(size, paint) {
+    const step = size * 1.32;
+    let y = 45;
+    function text(value, x, top, limit, bold = false) {
+      ctx.font = (bold ? 'bold ' : '') + size + 'px Arial, sans-serif';
+      const lines = wrap(value, limit);
+      if (paint) lines.forEach((line, i) => ctx.fillText(line, x, top + i * step));
+      return lines.length * step;
+    }
+    for (const block of paper.children) {
+      if (block.tagName === 'TABLE') {
+        const col = 153;
+        for (const row of block.rows) {
+          const [label, value] = Array.from(row.cells, cell => cell.textContent);
+          const height = 8 + Math.max(text(label, left + 5, y + 4, col - 10),
+            text(value, left + col + 5, y + 4, width - col - 10, true));
+          if (paint) {
+            ctx.strokeRect(left, y, col, height);
+            ctx.strokeRect(left + col, y, width - col, height);
+          }
+          y += height;
+        }
+      } else if (block.tagName === 'H2') {
+        ctx.textAlign = 'center';
+        y += text(block.textContent, left + width / 2, y, width, true) + 18;
+        ctx.textAlign = 'left';
+      } else if (block.matches('.signature')) {
+        y += 18;
+        for (const para of block.querySelectorAll('p')) {
+          y += text(para.textContent, left, y, width) + 9;
+        }
+      } else {
+        const heading = block.tagName === 'H3';
+        if (heading) y += 6;
+        y += text(block.textContent, left, y, width, heading) + 6;
+      }
+    }
+    return y;
+  }
+
+  ctx.scale(2, 2);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, 595, 842);
+  ctx.fillStyle = '#000';
+  ctx.textBaseline = 'top';
+  ctx.lineWidth = 0.5;
+  let size = 11;
+  while (draw(size, false) > 800 && size > 7) size -= 0.5;
+  if (draw(size, true) > 800) throw new Error('Form exceeds A4');
+
+  const jpeg = Uint8Array.from(atob(canvas.toDataURL('image/jpeg', 0.95).split(',')[1]),
+    char => char.charCodeAt(0));
+  const encoder = new TextEncoder();
+  const chunks = [];
+  const offsets = [0];
+  let length = 0;
+  function add(value) {
+    const bytes = typeof value === 'string' ? encoder.encode(value) : value;
+    chunks.push(bytes);
+    length += bytes.length;
+  }
+  function object(...parts) {
+    const number = offsets.length;
+    offsets.push(length);
+    add(number + ' 0 obj\n');
+    parts.forEach(add);
+    add('\nendobj\n');
+  }
+  add('%PDF-1.4\n');
+  object('<< /Type /Catalog /Pages 2 0 R >>');
+  object('<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+  object('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /XObject << /FormImage 4 0 R >> >> /Contents 5 0 R >>');
+  object('<< /Type /XObject /Subtype /Image /Width 1190 /Height 1684 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + jpeg.length + ' >>\nstream\n', jpeg, '\nendstream');
+  const commands = 'q 595 0 0 842 0 0 cm /FormImage Do Q\n';
+  object('<< /Length ' + commands.length + ' >>\nstream\n' + commands + 'endstream');
+  const xref = length;
+  add('xref\n0 ' + offsets.length + '\n0000000000 65535 f \n');
+  offsets.slice(1).forEach(offset => add(String(offset).padStart(10, '0') + ' 00000 n \n'));
+  add('trailer\n<< /Size ' + offsets.length + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF\n');
+  return new Blob(chunks, {type: 'application/pdf'});
+}
+
+downloadButton.addEventListener('click', () => {
+  try {
+    const url = URL.createObjectURL(buildPdf());
+    const link = document.createElement('a');
+    link.href = url;
+    const applicantName = document.querySelector('#paper [data-field="applicant"]').textContent;
+    const fileName = applicantName.replace(/[<>:"/\\|?*\u0000-\u001f]/g, ' ')
+      .trim().replace(/\s+/g, '_').slice(0, 60);
+    link.download = (fileName ? 'Visa_Undertaking_' + fileName : 'Visa_Undertaking_Form') + '.pdf';
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch {
+    alert('PDF তৈরি করা যায়নি। তথ্য সংক্ষিপ্ত করে আবার চেষ্টা করুন।');
+  }
+});
 
 /* theme toggle (shares the 'visadesk.theme' key with the tracker page) */
 const themeToggle = document.querySelector('#themeToggle');
