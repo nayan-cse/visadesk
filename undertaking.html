@@ -96,7 +96,7 @@ input:user-invalid,select:user-invalid,textarea:user-invalid{border-color:#d9626
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}.btn.primary:hover{transform:none}}
 
 /* ================= PDF PAPER (fixed design, do not change) ================= */
-#paper{background:white;color:black;color-scheme:light;padding:clamp(12px,3vw,24px);border-radius:10px;font:11pt/1.35 Arial,"Liberation Sans",Helvetica,sans-serif;overflow-wrap:anywhere;text-align:justify}
+#paper{background:white;color:black;color-scheme:light;padding:clamp(12px,3vw,24px);border-radius:10px;font:11pt/1.35 "Times New Roman","Liberation Serif",Times,serif;overflow-wrap:anywhere;text-align:justify}
 #paper h2{text-align:center;font-size:11pt;text-decoration:underline;margin:0 0 22pt}
 #paper h3{font-size:11pt;margin:14pt 0 6pt}
 #paper p{margin:0 0 9pt}
@@ -129,8 +129,8 @@ input:user-invalid,select:user-invalid,textarea:user-invalid{border-color:#d9626
 
 <header class="intro">
 <h1>Visa Undertaking Form</h1>
-<p>তথ্য পূরণ করুন, প্রিভিউ দেখে PDF সেভ করুন, তারপর প্রিন্ট করে হাতে সই করুন।</p>
-<ol class="flow" aria-label="ধাপসমূহ"><li><b>1</b>তথ্য দিন</li><li><b>2</b>প্রিভিউ দেখুন</li><li><b>3</b>PDF সেভ ও সই</li></ol>
+<p>তথ্য পূরণ করুন, প্রিভিউ দেখে PDF সেভ করুন, তারপর প্রিন্ট করে হাতে স্বাক্ষর করুন।</p>
+<ol class="flow" aria-label="ধাপসমূহ"><li><b>1</b>তথ্য দিন</li><li><b>2</b>প্রিভিউ দেখুন</li><li><b>3</b>PDF সেভ ও স্বাক্ষর</li></ol>
 </header>
 
 <main class="card">
@@ -190,11 +190,11 @@ input:user-invalid,select:user-invalid,textarea:user-invalid{border-color:#d9626
 
 <div class="group-head wide">
 <span class="group-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></span>
-<div><strong>স্থান ও তারিখ</strong><span>এটি সইয়ের জায়গায় ছাপা হবে</span></div>
+<div><strong>স্থান ও তারিখ</strong></div>
 </div>
 
 <label>জেলার নাম লিখুন<input name="place" maxlength="75" required></label>
-<label>সই করার তারিখ<input name="signed" type="date" required></label>
+<label>স্বাক্ষর করার তারিখ<input name="signed" type="date" required></label>
 <div class="wide actions"><button class="btn primary">প্রিভিউ দেখুন</button><button class="btn ghost" type="reset">ফর্ম খালি করুন</button></div>
 </form>
 </main>
@@ -224,7 +224,7 @@ input:user-invalid,select:user-invalid,textarea:user-invalid{border-color:#d9626
 <p>I declare that all information provided in my visa application is accurate and truthful to the best of my knowledge. I understand that providing false or misleading information may result in the denial of my visa application.</p>
 <p>I undertake to adhere to all the terms and conditions of my visa and will ensure that I leave India before the expiration of my authorized stay.</p>
 <div class="signature">
-<p>Signature of Applicant: __________________________________</p>
+<p>Signature of Applicant: ________________</p>
 <p class="place">Place and Date: <span data-field="place"></span>, <span data-field="signed"></span></p>
 </div>
 </article>
@@ -374,7 +374,7 @@ function buildPdf() {
     const step = size * 1.32;
     let y = 45;
     function text(value, x, top, limit, bold = false) {
-      ctx.font = (bold ? 'bold ' : '') + size + 'px Arial, sans-serif';
+      ctx.font = (bold ? 'bold ' : '') + size + 'px "Times New Roman", "Liberation Serif", Times, serif';
       const lines = wrap(value, limit);
       if (paint) lines.forEach((line, i) => ctx.fillText(line, x, top + i * step));
       return lines.length * step;
@@ -404,10 +404,30 @@ function buildPdf() {
       if (word.length) words.push(word);
 
       function font(bold) {
-        ctx.font = (bold ? 'bold ' : '') + size + 'px Arial, sans-serif';
+        ctx.font = (bold ? 'bold ' : '') + size + 'px "Times New Roman", "Liberation Serif", Times, serif';
       }
-      let x = left;
       let top = y;
+      let line = [];
+      let used = 0;
+      font(false);
+      const space = ctx.measureText(' ').width;
+      function flush(justify) {
+        const gap = justify && line.length > 1
+          ? space + (width - used) / (line.length - 1)
+          : space;
+        let x = left;
+        for (const runs of line) {
+          for (const {value, bold, advance} of runs) {
+            font(bold);
+            if (paint) ctx.fillText(value, x, top);
+            x += advance;
+          }
+          x += gap;
+        }
+        line = [];
+        used = 0;
+        top += step;
+      }
       for (const letters of words) {
         const runs = [];
         for (const {char, bold} of letters) {
@@ -415,37 +435,33 @@ function buildPdf() {
           if (last && last.bold === bold) last.value += char;
           else runs.push({value: char, bold});
         }
-        font(false);
-        const gap = x === left ? 0 : ctx.measureText(' ').width;
         const total = runs.reduce((sum, run) => {
           font(run.bold);
-          return sum + ctx.measureText(run.value).width;
+          run.advance = ctx.measureText(run.value).width;
+          return sum + run.advance;
         }, 0);
-        if (x > left && x + gap + total > left + width) {
-          x = left;
-          top += step;
-        } else {
-          x += gap;
-        }
-        for (const {value, bold} of runs) {
-          font(bold);
-          if (total <= width) {
-            if (paint) ctx.fillText(value, x, top);
-            x += ctx.measureText(value).width;
-            continue;
-          }
-          for (const char of value) {
+        if (line.length && used + space + total > width) flush(true);
+        if (total > width) {
+          let fragment = [];
+          for (const {char, bold} of letters) {
+            font(bold);
             const advance = ctx.measureText(char).width;
-            if (x > left && x + advance > left + width) {
-              x = left;
-              top += step;
+            if (used + advance > width && fragment.length) {
+              line.push(fragment);
+              flush(false);
+              fragment = [];
             }
-            if (paint) ctx.fillText(char, x, top);
-            x += advance;
+            fragment.push({value: char, bold, advance});
+            used += advance;
           }
+          line.push(fragment);
+        } else {
+          used += total + (line.length ? space : 0);
+          line.push(runs);
         }
       }
-      return top - y + step;
+      flush(false);
+      return top - y;
     }
     for (const block of paper.children) {
       if (block.tagName === 'TABLE') {
@@ -461,8 +477,19 @@ function buildPdf() {
           y += height;
         }
       } else if (block.tagName === 'H2') {
+        const title = block.textContent.trim();
+        const center = left + width / 2;
         ctx.textAlign = 'center';
-        y += text(block.textContent, left + width / 2, y, width, true) + 18;
+        const titleHeight = text(title, center, y, width, true);
+        if (paint) {
+          const halfWidth = ctx.measureText(title).width / 2;
+          const underlineY = y + size + 1;
+          ctx.beginPath();
+          ctx.moveTo(center - halfWidth, underlineY);
+          ctx.lineTo(center + halfWidth, underlineY);
+          ctx.stroke();
+        }
+        y += titleHeight + 18;
         ctx.textAlign = 'left';
       } else if (block.matches('.signature')) {
         y += 18;
