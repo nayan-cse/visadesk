@@ -207,7 +207,7 @@ input:user-invalid,select:user-invalid,textarea:user-invalid{border-color:#d9626
 <p>I, <span data-field="applicant"></span>, hereby undertake that, I shall utilise my visit only for the purpose of which, Visa has been applied. I also declare that I am residing in under the jurisdiction of <span data-field="mission"></span> on the date of making this application and that all the information given by me here is accurate, complete and true to my knowledge.</p>
 <h3>1. Personal Details</h3>
 <table>
-<tr><th>Name (As per passport)</th><td data-field="applicant"></td></tr>
+<tr><th>Name</th><td data-field="applicant"></td></tr>
 <tr><th>Passport No</th><td data-field="passport"></td></tr>
 <tr><th>Nationality</th><td data-field="nationality"></td></tr>
 <tr><th>Date of Birth</th><td data-field="birth"></td></tr>
@@ -379,6 +379,74 @@ function buildPdf() {
       if (paint) lines.forEach((line, i) => ctx.fillText(line, x, top + i * step));
       return lines.length * step;
     }
+    function paragraph(node) {
+      const chars = [];
+      function collect(part, bold = false) {
+        if (part.nodeType === Node.TEXT_NODE) {
+          for (const char of part.textContent) chars.push({char, bold});
+        } else if (part.nodeType === Node.ELEMENT_NODE) {
+          for (const child of part.childNodes) {
+            collect(child, bold || part.matches('[data-field], strong, b'));
+          }
+        }
+      }
+      collect(node);
+      const words = [];
+      let word = [];
+      for (const item of chars) {
+        if (/\s/u.test(item.char)) {
+          if (word.length) words.push(word);
+          word = [];
+        } else {
+          word.push(item);
+        }
+      }
+      if (word.length) words.push(word);
+
+      function font(bold) {
+        ctx.font = (bold ? 'bold ' : '') + size + 'px Arial, sans-serif';
+      }
+      let x = left;
+      let top = y;
+      for (const letters of words) {
+        const runs = [];
+        for (const {char, bold} of letters) {
+          const last = runs.at(-1);
+          if (last && last.bold === bold) last.value += char;
+          else runs.push({value: char, bold});
+        }
+        font(false);
+        const gap = x === left ? 0 : ctx.measureText(' ').width;
+        const total = runs.reduce((sum, run) => {
+          font(run.bold);
+          return sum + ctx.measureText(run.value).width;
+        }, 0);
+        if (x > left && x + gap + total > left + width) {
+          x = left;
+          top += step;
+        } else {
+          x += gap;
+        }
+        for (const {value, bold} of runs) {
+          font(bold);
+          if (total <= width) {
+            if (paint) ctx.fillText(value, x, top);
+            x += ctx.measureText(value).width;
+            continue;
+          }
+          for (const char of value) {
+            const advance = ctx.measureText(char).width;
+            if (x > left && x + advance > left + width) {
+              x = left;
+              top += step;
+            }
+            if (paint) ctx.fillText(char, x, top);
+            x += advance;
+          }
+        }
+      }
+      return top - y + step;
+    }
     for (const block of paper.children) {
       if (block.tagName === 'TABLE') {
         const col = 153;
@@ -399,12 +467,12 @@ function buildPdf() {
       } else if (block.matches('.signature')) {
         y += 18;
         for (const para of block.querySelectorAll('p')) {
-          y += text(para.textContent, left, y, width) + 9;
+          y += paragraph(para) + 9;
         }
       } else {
         const heading = block.tagName === 'H3';
         if (heading) y += 6;
-        y += text(block.textContent, left, y, width, heading) + 6;
+        y += (heading ? text(block.textContent, left, y, width, true) : paragraph(block)) + 6;
       }
     }
     return y;
