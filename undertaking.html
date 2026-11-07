@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="bn" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VisaDesk | Visa Undertaking Form</title>
+<script>
+try {
+  if (localStorage.getItem('visadesk.theme') === 'light') {
+    document.documentElement.dataset.theme = 'light';
+  }
+} catch {}
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+/* ================= PAGE (user-facing) ================= */
+:root{color-scheme:light;--bg:#f6f8fc;--surface:#fff;--subtle:#f6f9fb;--ink:#1d3246;--muted:#5d7388;--line:#dfe8ef;--accent:#5263d9;--accent-soft:#eef0ff;--accent-ink:#fff;--focus:#8793f0;--ok:#147652;--ok-soft:#eaf7f0;--shadow:0 18px 48px #2334550f;--glow-a:#e5e9fb;--glow-b:#e6f3f6;--radius:22px}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0b1222;--surface:#131f34;--subtle:#192840;--ink:#eef5fc;--muted:#a8bacd;--line:#2b3c56;--accent:#a2afff;--accent-soft:#263256;--accent-ink:#0b1222;--focus:#a2afff;--ok:#7bdbae;--ok-soft:#173c33;--shadow:0 18px 48px #00000035;--glow-a:#16244a;--glow-b:#10303a}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font:15px/1.6 'Noto Sans Bengali','DM Sans',system-ui,sans-serif;background:radial-gradient(ellipse at 10% 0,var(--glow-a),transparent 46%),radial-gradient(ellipse at 100% 30%,var(--glow-b),transparent 40%),var(--bg);transition:background-color .2s,color .2s}
+[hidden]{display:none!important}
+.shell{max-width:800px;margin:0 auto;padding:0 22px 44px}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;height:84px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;font:700 25px 'DM Sans',sans-serif;letter-spacing:-.8px}
+.brand small{color:var(--accent);font-size:25px}
+.brand-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line)}
+.brand-icon svg{width:22px;height:22px}
+.theme-toggle{display:flex;align-items:center;gap:8px;min-height:42px;padding:8px 14px;border-radius:24px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:500 12px 'Noto Sans Bengali','DM Sans',sans-serif;cursor:pointer;box-shadow:0 3px 10px #183a5208}
+
+.tool-nav{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:0 auto 22px}
+.tool-nav a{border:1px solid var(--line);border-radius:12px;padding:9px 16px;color:var(--muted);background:var(--surface);text-decoration:none;font-weight:600;font-size:14px;transition:border-color .15s,color .15s}
+.tool-nav a:hover{color:var(--ink);border-color:var(--accent)}
+.tool-nav a[aria-current]{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+
+.intro{text-align:center;padding:6px 0 26px}
+.intro h1{font-size:clamp(26px,5vw,38px);line-height:1.5;margin:0 0 6px;letter-spacing:-.6px;font-weight:700}
+.intro p{margin:0 auto;max-width:520px;color:var(--muted);font-size:15px}
+.flow{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 10px;margin:18px 0 0;padding:0;list-style:none;font-size:13px;color:var(--muted)}
+.flow li{display:flex;align-items:center;gap:8px}
+.flow b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font:700 12px 'DM Sans',sans-serif}
+.flow li+li:before{content:"";width:18px;height:1px;background:var(--line)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:30px}
+form{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.wide{grid-column:1/-1}
+
+.group-head{display:flex;align-items:center;gap:12px;margin:8px 0 -4px}
+.group-head:not(:first-child){margin-top:14px;padding-top:22px;border-top:1px solid var(--line)}
+.group-icon{display:grid;place-items:center;width:38px;height:38px;flex-shrink:0;border-radius:12px;background:var(--accent-soft);color:var(--accent)}
+.group-icon svg{width:19px;height:19px}
+.group-head strong{display:block;font-size:17px;line-height:1.5}
+.group-head span{display:block;font-size:13px;color:var(--muted);line-height:1.5}
+
+label{display:block;font-weight:600;font-size:14px}
+input,textarea,select{display:block;width:100%;min-height:46px;padding:11px 13px;margin-top:7px;border:1px solid var(--line);border-radius:12px;font:inherit;font-weight:400;color:var(--ink);background:var(--subtle);transition:border-color .15s,box-shadow .15s,background-color .15s}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
+input:hover,textarea:hover,select:hover{border-color:var(--muted)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--focus);box-shadow:0 0 0 3px var(--accent-soft);background:var(--surface)}
+input:disabled,select:disabled,textarea:disabled{opacity:.6}
+select{appearance:none;-webkit-appearance:none;padding-right:40px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237f93a8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+textarea{resize:vertical;min-height:80px}
+input[type=date]{min-height:46px}
+input:user-invalid,select:user-invalid,textarea:user-invalid{border-color:#d9626a}
+
+#patientFields{min-width:0;margin:0;padding:18px;border:1px dashed var(--accent);border-radius:16px;background:var(--accent-soft);display:grid;grid-template-columns:1fr 1fr;gap:14px}
+#patientFields legend{padding:0 8px;font-weight:700;font-size:14px;color:var(--accent)}
+#patientFields label+label{margin-top:0}
+#patientFields input{background:var(--surface)}
+
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.btn{font:600 15px 'Noto Sans Bengali','DM Sans',sans-serif;min-height:50px;padding:12px 22px;border-radius:13px;border:1px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;touch-action:manipulation}
+.btn.primary{flex:1 1 220px;background:var(--accent);color:var(--accent-ink);box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 30%,transparent)}
+.btn.primary:hover{transform:translateY(-1px)}
+.btn.ghost{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--muted)}
+.btn:focus-visible,.theme-toggle:focus-visible,.tool-nav a:focus-visible,.brand:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+
+#preview{margin-top:22px}
+.preview-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;padding:18px 20px;margin-bottom:16px;border-radius:18px;border:1px solid var(--line);background:var(--ok-soft)}
+.preview-bar strong{display:block;font-size:16px;color:var(--ok)}
+.preview-bar p{margin:2px 0 0;font-size:13px;color:var(--muted);max-width:430px}
+.preview-bar .btn{flex-shrink:0}
+.desk{padding:clamp(10px,3vw,26px);border-radius:18px;background:var(--subtle);border:1px solid var(--line);box-shadow:inset 0 2px 10px #00000010}
+.desk #paper{box-shadow:0 10px 30px #0000002a}
+
+@media(max-width:600px){
+  .shell{padding:0 14px 32px}
+  .topbar{height:72px}
+  .card{padding:22px 18px}
+  form,#patientFields{grid-template-columns:1fr}
+  .flow li+li:before{display:none}
+  .btn{width:100%}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}.btn.primary:hover{transform:none}}
+
+/* ================= PDF PAPER (fixed design, do not change) ================= */
+#paper{background:white;color:black;color-scheme:light;padding:clamp(12px,3vw,24px);border-radius:10px;font:11pt/1.35 Arial,"Liberation Sans",Helvetica,sans-serif;overflow-wrap:anywhere;text-align:justify}
+#paper h2{text-align:center;font-size:11pt;text-decoration:underline;margin:0 0 22pt}
+#paper h3{font-size:11pt;margin:14pt 0 6pt}
+#paper p{margin:0 0 9pt}
+#paper table{border-collapse:collapse;width:100%;table-layout:fixed}
+#paper th,#paper td{border:1px solid #000;padding:3pt 4pt;text-align:left;vertical-align:top;font-weight:400}
+#paper th{width:30%}
+#paper .signature{margin-top:26pt}
+#paper .signature .place{margin-top:20pt}
+#paper p [data-field],#paper td[data-field]{font-weight:700}
+@page{size:A4;margin:19mm 25mm}
+@media print{
+  :root[data-theme]{color-scheme:light}
+  #paper,.desk #paper{padding:0;border-radius:0;box-shadow:none}
+  body,main{background:white;border:0;margin:0;padding:0;max-width:none;border-radius:0;box-shadow:none}
+  .shell{padding:0;max-width:none}
+  .topbar,.tool-nav,.intro,main.card,form,.preview-bar{display:none!important}
+  #preview{margin:0;padding:0;border:0}
+  .desk{padding:0;border:0;background:none;box-shadow:none;border-radius:0}
+  #paper tr,#paper .signature{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="topbar">
+<a class="brand" href="/" aria-label="VisaDesk"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span>Visa<small>Desk</small></a>
+<button type="button" class="theme-toggle" id="themeToggle" aria-pressed="true"><span id="themeIcon" aria-hidden="true">☀</span><span id="themeLabel">দিনের মোড</span></button>
+</div>
+<nav class="tool-nav" aria-label="VisaDesk tools"><a href="/">ভিসা ট্র্যাকার</a><a href="/undertaking" aria-current="page">Undertaking Form</a></nav>
+
+<header class="intro">
+<h1>Visa Undertaking Form</h1>
+<p>তথ্য পূরণ করুন, প্রিভিউ দেখে PDF সেভ করুন, তারপর প্রিন্ট করে হাতে সই করুন।</p>
+<ol class="flow" aria-label="ধাপসমূহ"><li><b>1</b>তথ্য দিন</li><li><b>2</b>প্রিভিউ দেখুন</li><li><b>3</b>PDF সেভ ও সই</li></ol>
+</header>
+
+<main class="card">
+<form id="entry" autocomplete="off">
+
+<div class="group-head wide">
+<span class="group-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+<div><strong>আবেদনকারীর তথ্য</strong><span>পাসপোর্টে যেভাবে আছে, ঠিক সেভাবে লিখুন</span></div>
+</div>
+
+<label class="wide">ভিসা মিশন
+<select name="mission" required>
+<option value="">Select Mission</option>
+<option value="Assistant High Commission of India, Chittagong">BANGLADESH-CHITTAGONG</option>
+<option value="High Commission of India, Dhaka">BANGLADESH-DHAKA</option>
+<option value="Assistant High Commission of India, Khulna">BANGLADESH-KHULNA</option>
+<option value="Assistant High Commission of India, Rajshahi">BANGLADESH-RAJSHAHI</option>
+<option value="Assistant High Commission of India, Sylhet">BANGLADESH-SYLHET</option>
+</select></label>
+<label>পুরো নাম<input name="applicant" maxlength="100" required></label>
+<label>পাসপোর্ট নম্বর<input name="passport" maxlength="25" required></label>
+<label>জাতীয়তা<input name="nationality" value="Bangladeshi" maxlength="50" required></label>
+<label>জন্মতারিখ<input name="birth" type="date" required></label>
+<label class="wide">বর্তমান পূর্ণ ঠিকানা (জেলাসহ)<textarea name="address" maxlength="220" rows="2" required></textarea></label>
+
+<div class="group-head wide">
+<span class="group-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
+<div><strong>ভ্রমণের উদ্দেশ্য</strong><span>উদ্দেশ্য বেছে নিলে প্রয়োজনীয় ঘরগুলো নিজে থেকে আসবে</span></div>
+</div>
+
+<label class="wide">ভারত ভ্রমণের উদ্দেশ্য
+<select id="purposePreset" required>
+<option value="">উদ্দেশ্য বেছে নিন</option>
+<option value="tourism">Tourist Visa</option>
+<option value="business">Business Visa</option>
+<option value="medical">Medical Visa (M1)</option>
+<option value="attendant">Medical Attendant (রোগীর সঙ্গে যাবেন) (M2)</option>
+<option value="student">Student Visa</option>
+<option value="conference">Conference</option>
+<option value="interview">Embassy Visa Interview (Double Entry)</option>
+<option value="pilgrimage">Pilgrimage (Entry Visa)</option>
+<option value="custom">Other</option>
+</select></label>
+<label id="detailLabel" class="wide" hidden><span id="detailCaption"></span>
+<input name="purposeDetail" maxlength="140" disabled></label>
+<fieldset id="patientFields" class="wide" hidden disabled>
+<legend>যে রোগীর সঙ্গে যাবেন</legend>
+<label>রোগীর নাম
+<input name="patient" maxlength="100" required></label>
+<label>রোগীর পাসপোর্ট নম্বর
+<input name="patientPassport" maxlength="25" required></label>
+</fieldset>
+<label id="courseLabel" class="wide" hidden>কোর্স বা প্রোগ্রামের নাম (ইংরেজিতে)
+<input name="course" maxlength="120" disabled></label>
+<label id="venueAddressLabel" class="wide" hidden><span id="venueCaption"></span>
+<input name="venueAddress" maxlength="180" disabled></label>
+
+<div class="group-head wide">
+<span class="group-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></span>
+<div><strong>স্থান ও তারিখ</strong><span>এটি সইয়ের জায়গায় ছাপা হবে</span></div>
+</div>
+
+<label>জেলার নাম লিখুন<input name="place" maxlength="75" required></label>
+<label>সই করার তারিখ<input name="signed" type="date" required></label>
+<div class="wide actions"><button class="btn primary">প্রিভিউ দেখুন</button><button class="btn ghost" type="reset">ফর্ম খালি করুন</button></div>
+</form>
+</main>
+
+<section id="preview" hidden>
+<header class="preview-bar"><div><strong>প্রিভিউ তৈরি হয়েছে</strong><p>প্রিন্ট ডায়ালগে PDF হিসেবে সেভ করুন। প্রয়োজন হলে Headers and footers বন্ধ করুন।</p></div><button id="print" class="btn primary" type="button">প্রিন্ট / Save as PDF</button></header>
+<div class="desk">
+<article id="paper" lang="en">
+<h2>VISA UNDERTAKING FORM</h2>
+<p>I, <span data-field="applicant"></span>, hereby undertake that, I shall utilise my visit only for the purpose of which, Visa has been applied. I also declare that I am residing in under the jurisdiction of <span data-field="mission"></span> on the date of making this application and that all the information given by me here is accurate, complete and true to my knowledge.</p>
+<h3>1. Personal Details</h3>
+<table>
+<tr><th>Name (As per passport)</th><td data-field="applicant"></td></tr>
+<tr><th>Passport No</th><td data-field="passport"></td></tr>
+<tr><th>Nationality</th><td data-field="nationality"></td></tr>
+<tr><th>Date of Birth</th><td data-field="birth"></td></tr>
+<tr><th>Address in <span data-field="city"></span></th><td data-field="address"></td></tr>
+</table>
+<h3>2. Purpose of Visit</h3>
+<p>I wish to visit India for the purpose of <span data-field="purpose"></span>.</p>
+<h3>3. Return to Home Country</h3>
+<p>I undertake to return to my home country immediately upon the completion of my visit, and I confirm that I have no intention of overstaying my visa in India. I will return to <span data-field="address"></span>.</p>
+<h3>4. Compliance with Indian Laws</h3>
+<p>I hereby pledge to fully comply with the laws, regulations, and customs of India during my stay. I acknowledge that I will not engage in any activity that is prohibited under Indian law and will respect the local customs and culture.</p>
+<h3>5. Acknowledgment and Declaration</h3>
+<p>I understand that any violation of Indian laws or regulations may lead to the cancellation of my visa and may affect my future eligibility for a visa to India.</p>
+<p>I declare that all information provided in my visa application is accurate and truthful to the best of my knowledge. I understand that providing false or misleading information may result in the denial of my visa application.</p>
+<p>I undertake to adhere to all the terms and conditions of my visa and will ensure that I leave India before the expiration of my authorized stay.</p>
+<div class="signature">
+<p>Signature of Applicant: __________________________________</p>
+<p class="place">Place and Date: <span data-field="place"></span>, <span data-field="signed"></span></p>
+</div>
+</article>
+</div>
+</section>
+</div>
+<script>
+const form = document.querySelector('#entry');
+const purposePreset = document.querySelector('#purposePreset');
+const purposeTypes = {
+  tourism: ['যেসব শহরে যাবেন (ইংরেজিতে, কমা দিয়ে লিখুন)', 'tourism and sightseeing in '],
+  business: ['প্রতিষ্ঠান বা ব্যবসায়িক মিটিংয়ের নাম (ইংরেজিতে)', 'business activities involving '],
+  medical: ['হাসপাতালের নাম (ইংরেজিতে)', 'medical treatment at '],
+  attendant: ['হাসপাতালের নাম (ইংরেজিতে)', ''],
+  student: ['শিক্ষাপ্রতিষ্ঠানের নাম (ইংরেজিতে)', ''],
+  conference: ['সম্মেলনের নাম (ইংরেজিতে)', 'the purpose of attending '],
+  interview: ['দূতাবাস বা কনস্যুলেটের নাম ও শহর (ইংরেজিতে)', 'attending a visa interview at '],
+  pilgrimage: ['তীর্থস্থান বা শহরের নাম (ইংরেজিতে)', 'undertaking a pilgrimage to '],
+  custom: ['ভ্রমণের কারণ (ইংরেজিতে)', '']
+};
+const detail = form.elements.purposeDetail;
+const patient = form.elements.patient;
+const patientPassport = form.elements.patientPassport;
+const course = form.elements.course;
+const venueAddress = form.elements.venueAddress;
+function updatePurposeFields() {
+  const selected = purposeTypes[purposePreset.value];
+  const attendant = purposePreset.value === 'attendant';
+  const patientFields = document.querySelector('#patientFields');
+  patientFields.hidden = !attendant;
+  patientFields.disabled = !attendant;
+  const student = purposePreset.value === 'student';
+  document.querySelector('#courseLabel').hidden = !student;
+  course.disabled = !student;
+  course.required = student;
+  const venueCaptions = {
+    attendant: 'হাসপাতালের পূর্ণ ঠিকানা (ইংরেজিতে)',
+    medical: 'হাসপাতালের পূর্ণ ঠিকানা (ইংরেজিতে)',
+    business: 'প্রতিষ্ঠান বা মিটিংয়ের স্থানের পূর্ণ ঠিকানা (ইংরেজিতে)',
+    student: 'ক্যাম্পাসের পূর্ণ ঠিকানা (ইংরেজিতে)',
+    conference: 'সম্মেলনের ভেন্যুর পূর্ণ ঠিকানা (ইংরেজিতে)'
+  };
+  const venueCaption = venueCaptions[purposePreset.value];
+  document.querySelector('#venueCaption').textContent = venueCaption || '';
+  document.querySelector('#detailCaption').textContent = selected ? selected[0] : '';
+  document.querySelector('#detailLabel').hidden = !selected;
+  document.querySelector('#venueAddressLabel').hidden = !venueCaption;
+  detail.disabled = !selected;
+  detail.required = Boolean(selected);
+  venueAddress.disabled = !venueCaption;
+  venueAddress.required = Boolean(venueCaption);
+}
+updatePurposeFields();
+purposePreset.addEventListener('change', () => {
+  for (const field of [detail, patient, patientPassport, course, venueAddress]) {
+    field.value = '';
+    field.setCustomValidity('');
+  }
+  updatePurposeFields();
+});
+const preview = document.querySelector('#preview');
+const pageTitle = document.title;
+const printButton = document.querySelector('#print');
+const dateFormat = new Intl.DateTimeFormat('en-GB', {
+  day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC'
+});
+form.addEventListener('input', (event) => {
+  event.target.setCustomValidity('');
+  preview.hidden = true;
+  document.title = pageTitle;
+});
+form.addEventListener('reset', () => {
+  for (const field of form.querySelectorAll('input, textarea, select')) field.setCustomValidity('');
+  queueMicrotask(updatePurposeFields);
+  preview.hidden = true;
+  document.title = pageTitle;
+  for (const field of preview.querySelectorAll('[data-field]')) field.textContent = '';
+});
+form.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const values = Object.fromEntries(new FormData(form));
+  for (const name of Object.keys(values)) {
+    values[name] = values[name].trim().replace(/\s+/g, ' ');
+    if (!values[name]) {
+      form.elements[name].setCustomValidity('এই তথ্যটি পূরণ করুন।');
+      form.reportValidity();
+      return;
+    }
+  }
+  const [, prefix] = purposeTypes[purposePreset.value];
+  values.purpose = prefix + values.purposeDetail.replace(/[.]+$/, '');
+  if (purposePreset.value === 'student') {
+    values.purpose = 'the purpose of studying ' + values.course + ' at ' + values.purpose;
+  }
+  if (purposePreset.value === 'attendant') {
+    values.purpose = 'the purpose of accompanying ' + values.patient + ' (Passport No. ' + values.patientPassport + ') as a medical attendant for the patient’s treatment at ' + values.purpose;
+  }
+  if (values.venueAddress) {
+    values.purpose += (['student', 'attendant'].includes(purposePreset.value) ? ', located at ' : ', at ') + values.venueAddress.replace(/[.]+$/, '');
+  }
+  values.purpose = values.purpose.replace(/^the purpose of /, '');
+  values.city = values.mission.split(',').pop().trim();
+  for (const name of ['birth', 'signed']) {
+    values[name] = dateFormat.format(new Date(values[name] + 'T00:00:00Z'));
+  }
+  for (const field of preview.querySelectorAll('[data-field]')) {
+    field.textContent = values[field.dataset.field];
+  }
+  preview.hidden = false;
+  document.title = 'Visa Undertaking Form - ' + values.applicant.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
+  preview.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  printButton.focus({ preventScroll: true });
+});
+printButton.addEventListener('click', () => window.print());
+
+/* theme toggle (shares the 'visadesk.theme' key with the tracker page) */
+const themeToggle = document.querySelector('#themeToggle');
+function applyTheme(dark) {
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  themeToggle.setAttribute('aria-pressed', String(dark));
+  themeToggle.setAttribute('aria-label', dark ? 'দিনের মোড চালু করুন' : 'নাইট মোড চালু করুন');
+  document.querySelector('#themeIcon').textContent = dark ? '☀' : '☾';
+  document.querySelector('#themeLabel').textContent = dark ? 'দিনের মোড' : 'নাইট মোড';
+}
+applyTheme(document.documentElement.dataset.theme !== 'light');
+themeToggle.addEventListener('click', () => {
+  const dark = document.documentElement.dataset.theme !== 'dark';
+  applyTheme(dark);
+  try { localStorage.setItem('visadesk.theme', dark ? 'dark' : 'light'); } catch {}
+});
+</script>
+</body>
+</html>

@@ -11,6 +11,10 @@
     {
       "source": "/",
       "destination": "/api/home"
+    },
+    {
+      "source": "/undertaking",
+      "destination": "/undertaking.html"
     }
   ]
 }

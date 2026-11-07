@@ -1,3 +1,4 @@
+import {readFile} from 'node:fs/promises';
 import {createServer} from 'node:http';
 import {handle} from '../src/handler.js';
 import {loadLocalEnv} from './env.mjs';
@@ -11,7 +12,12 @@ createServer(async(req,res)=>{
   // Local origin is fixed; forwarded headers cannot override it.
   const url=new URL(req.url,`http://localhost:${port}`);
   const request=new Request(url,{method:req.method,headers,...(!['GET','HEAD'].includes(req.method)?{body:Buffer.concat(chunks)}:{})});
-  const response=await handle(request,env);
+  const isUndertaking = ['GET', 'HEAD'].includes(request.method)
+    && ['/undertaking', '/undertaking.html'].includes(url.pathname);
+  const response = isUndertaking
+    ? new Response(request.method === 'HEAD' ? null : await readFile(new URL('../undertaking.html', import.meta.url)),
+      {headers: {'Content-Type': 'text/html; charset=utf-8'}})
+    : await handle(request, env);
   res.writeHead(response.status,Object.fromEntries(response.headers));
   res.end(Buffer.from(await response.arrayBuffer()));
  }catch{res.writeHead(500);res.end('Server error');}
